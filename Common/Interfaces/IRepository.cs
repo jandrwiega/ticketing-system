@@ -7,8 +7,8 @@ namespace TicketingSystem.Common.Interfaces
         where TCreateDto : class
         where TUpdateDto : class
     {
-        Task<IEnumerable<TEntity>> Get();
+        Task<IEnumerable<TEntity>> Get(TicketFiltersDto filters);
         Task<TEntity> Create(TCreateDto body);
-        Task<TEntity> Update(TUpdateDto body);
+        Task<TEntity> Update(Guid itemId, TUpdateDto body);
     }
 }

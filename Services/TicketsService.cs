@@ -1,20 +1,21 @@
-﻿using TicketingSystem.Common.Models;
+﻿using TicketingSystem.Common.Interfaces;
+using TicketingSystem.Common.Models;
 using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Services
 {
-    public class TicketsService
+    public class TicketsService : ITicketsService
     {
-        private readonly TicketsDbRepository ticketsDbRepository;
+        private readonly IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> ticketsDbRepository;
 
-        public TicketsService(TicketsDbRepository _ticketsDbRepository)
+        public TicketsService(IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> _ticketsDbRepository)
         {
             ticketsDbRepository = _ticketsDbRepository;
         }
 
-        public async Task<IEnumerable<TicketEntity>> GetTickets()
+        public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
         {
-            return await ticketsDbRepository.Get();
+             return await ticketsDbRepository.Get(filters);
         }
 
         public async Task<TicketEntity> CreateTicket(TicketCreateDto body)
@@ -22,9 +23,9 @@ namespace TicketingSystem.Services
             return await ticketsDbRepository.Create(body);
         }
 
-        public async Task<TicketEntity> UpdateTicket(TicketUpdateDto body)
+        public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
-            return await ticketsDbRepository.Update(body);
+            return await ticketsDbRepository.Update(ticketId, body);
         }
     }
 }

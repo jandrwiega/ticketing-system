@@ -8,35 +8,29 @@ namespace TicketingSystem.Common.Models
     {
         [Required]
         [MaxLength(255, ErrorMessage = "Ticket title can't be longer than 255 characters")]
-        public string Title { get; set; }
+        public required string Title { get; set; }
 
-        [Required]
         [MaxLength(2000, ErrorMessage = "Description can't be longer than 2000 characters")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public string? Assignee { get; set; }
+        public Guid? Assignee { get; set; }
 
-        [Required]
-        public TicketStatusEnum Status { get; set; }
+        public TicketStatusEnum? Status { get; set; }
 
-        [Required]
-        public TicketTypeEnum Type { get; set; }
+        public TicketTypeEnum? Type { get; set; }
 
     }
 
     public class TicketUpdateDto
     {
-        [Required]
         [MaxLength(255, ErrorMessage = "Ticket title can't be longer than 255 characters")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
-        [Required]
         [MaxLength(2000, ErrorMessage = "Description can't be longer than 2000 characters")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public string? Assignee { get; set; }
+        public Guid? Assignee { get; set; }
 
-        [Required]
-        public TicketStatusEnum Status { get; set; }
+        public TicketStatusEnum? Status { get; set; }
     }
 }

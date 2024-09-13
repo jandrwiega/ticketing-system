@@ -1,15 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using TicketingSystem.Core;
 using TicketingSystem.Repositories;
 using TicketingSystem.Services;
+using TicketingSystem.Common.Interfaces;
+using TicketingSystem.Common.Models;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<TicketsService>();
-//builder.Services.AddScoped<TicketsDbRepository>();
-//builder.Services.AddScoped<DbContext>();
+builder.Services.AddScoped<ITicketsService, TicketsService>();
+builder.Services.AddScoped<IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>, TicketsDbRepository>();
+builder.Services.AddScoped<AppDbContext>();
 
 var app = builder.Build();
 
