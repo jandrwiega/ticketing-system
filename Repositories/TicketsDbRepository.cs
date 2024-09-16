@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
 using TicketingSystem.Core;
-using TicketingSystem.Models.Enums;
 
 namespace TicketingSystem.Repositories
 {
@@ -22,11 +19,7 @@ namespace TicketingSystem.Repositories
 
         public async Task<IEnumerable<TicketEntity>> Get(TicketFiltersDto filters) 
         {
-            var filterExpression = FilterBuilder.Build(filters);
-
-            //Where(product => product.Type == filters.Type)
-
-            return await _dbContext.TicketEntities.ToListAsync();
+            return await _dbContext.TicketEntities.ApplyFilter<TicketEntity>(filters).ToListAsync();
         }
 
         public async Task<TicketEntity> Create(TicketCreateDto body)
@@ -41,8 +34,7 @@ namespace TicketingSystem.Repositories
 
         public async Task<TicketEntity> Update(Guid ticketId, TicketUpdateDto body)
         {
-            TicketEntity entity = await _dbContext.TicketEntities.FindAsync(ticketId);
-
+            TicketEntity? entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
             foreach (var property in body.GetType().GetProperties())
             {
                 string key = property.Name;
@@ -58,6 +50,30 @@ namespace TicketingSystem.Repositories
                 }
             }
 
+            await _dbContext.SaveChangesAsync();
+
+            return entity;
+        }
+
+        public async Task<TicketEntity> TicketAddRelated(Guid ticketId, TicketAddRelatedDto body)
+        {
+            TicketEntity? entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
+
+            if (entity.Type != "Epic") throw new BadHttpRequestException("Tickets can be related only to Epics");
+
+            Guid[]? relatedElementIds = body.RelatedElements;
+            List<TicketEntity> relatedTickets = await _dbContext.TicketEntities.Where(p => relatedElementIds.Contains(p.Id)).ToListAsync();
+
+            if (relatedTickets.Count != relatedElementIds.Length) throw new BadHttpRequestException("Some of tickets not found");
+
+            bool isAllRelatedElementsValid = relatedTickets.All(item => item.Type != "Epic");
+
+            if (!isAllRelatedElementsValid) throw new BadHttpRequestException("Epic cannot be related of other Epic");
+
+            Guid[] updatedElements = [.. (entity.RelatedElements ?? []), .. body.RelatedElements];
+            entity.RelatedElements = (Guid[]?)updatedElements.Distinct().ToArray();
+
+            _dbContext.Update(entity);
             await _dbContext.SaveChangesAsync();
 
             return entity;

@@ -15,9 +15,9 @@ namespace TicketingSystem.Common.Models
 
         public Guid? Assignee { get; set; }
 
-        public TicketStatusEnum? Status { get; set; }
+        public string? Status { get; set; }
 
-        public TicketTypeEnum? Type { get; set; }
+        public string? Type { get; set; }
 
     }
 
@@ -31,6 +31,12 @@ namespace TicketingSystem.Common.Models
 
         public Guid? Assignee { get; set; }
 
-        public TicketStatusEnum? Status { get; set; }
+        public string? Status { get; set; }
+    }
+
+    public class TicketAddRelatedDto
+    {
+        [MinLength(1, ErrorMessage = "Minimum one child item required")]
+        public Guid[]? RelatedElements { get; set; }
     }
 }

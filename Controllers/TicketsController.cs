@@ -28,5 +28,11 @@ namespace TicketingSystem.Controllers
         {
             return await ticketsService.UpdateTicket(ticketId, body);
         }
+
+        [HttpPut("{ticketId}/add-related")]
+        public async Task<TicketEntity> TicketAddRelated([FromRoute] Guid ticketId, [FromBody] TicketAddRelatedDto body)
+        {
+            return await ticketsService.TicketAddRelated(ticketId, body);
+        }
     }
 }

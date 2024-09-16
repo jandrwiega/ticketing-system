@@ -5,6 +5,7 @@ using TicketingSystem.Services;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
 using AutoMapper;
+using TicketingSystem.Core.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,5 +29,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseMiddleware<TicketsMiddleware>();
 
 app.Run();

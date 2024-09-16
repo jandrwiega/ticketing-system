@@ -27,5 +27,10 @@ namespace TicketingSystem.Services
         {
             return await ticketsDbRepository.Update(ticketId, body);
         }
+
+        public async Task<TicketEntity> TicketAddRelated(Guid ticketId, TicketAddRelatedDto body)
+        {
+            return await ticketsDbRepository.TicketAddRelated(ticketId, body);
+        }
     }
 }

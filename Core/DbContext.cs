@@ -24,14 +24,14 @@ namespace TicketingSystem.Core
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var StatusConversion = new ValueConverter<TicketStatusEnum, int>(
-                value => (int)value,
-                value => (TicketStatusEnum)value
-            );
+            //var StatusConversion = new ValueConverter<TicketStatusEnum, int>(
+            //    value => (int)value,
+            //    value => (TicketStatusEnum)value
+            //);
 
             modelBuilder.Entity<TicketEntity>()
-                .ToTable("tickets")
-                .Property(column => column.Status).HasConversion(StatusConversion);
+                .ToTable("tickets");
+                //.Property(column => column.Status).HasConversion(StatusConversion);
 
             base.OnModelCreating(modelBuilder);
         }
