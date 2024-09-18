@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
-using TicketingSystem.Services;
 
 namespace TicketingSystem.Controllers
 {
@@ -9,7 +8,6 @@ namespace TicketingSystem.Controllers
     [Route("v1/tickets")]
     public class TicketsController(ITicketsService ticketsService) : ControllerBase
     {
-        // Add filters for type, assignment, status, affected version (bug) - filters should be optional
         [HttpGet]
         public async Task<IEnumerable<TicketEntity>> GetTickets([FromQuery] TicketFiltersDto filters)
         {
@@ -22,17 +20,10 @@ namespace TicketingSystem.Controllers
             return await ticketsService.CreateTicket(body);
         }
 
-        // Update assignment or ticket status
         [HttpPut("{ticketId}")]
         public async Task<TicketEntity> UpdateTicket([FromRoute] Guid ticketId, [FromBody] TicketUpdateDto body)
         {
             return await ticketsService.UpdateTicket(ticketId, body);
-        }
-
-        [HttpPut("{ticketId}/add-related")]
-        public async Task<TicketEntity> TicketAddRelated([FromRoute] Guid ticketId, [FromBody] TicketAddRelatedDto body)
-        {
-            return await ticketsService.TicketAddRelated(ticketId, body);
         }
     }
 }

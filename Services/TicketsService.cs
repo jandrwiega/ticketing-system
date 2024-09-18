@@ -1,17 +1,11 @@
 ﻿using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
-using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Services
 {
-    public class TicketsService : ITicketsService
+    public class TicketsService(IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> _ticketsDbRepository) : ITicketsService
     {
-        private readonly IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> ticketsDbRepository;
-
-        public TicketsService(IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> _ticketsDbRepository)
-        {
-            ticketsDbRepository = _ticketsDbRepository;
-        }
+        private readonly IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> ticketsDbRepository = _ticketsDbRepository;
 
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
         {
@@ -26,11 +20,6 @@ namespace TicketingSystem.Services
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
             return await ticketsDbRepository.Update(ticketId, body);
-        }
-
-        public async Task<TicketEntity> TicketAddRelated(Guid ticketId, TicketAddRelatedDto body)
-        {
-            return await ticketsDbRepository.TicketAddRelated(ticketId, body);
         }
     }
 }

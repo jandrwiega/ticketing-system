@@ -7,7 +7,5 @@ namespace TicketingSystem.Common.Interfaces
         Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters);
         Task<TicketEntity> CreateTicket(TicketCreateDto body);
         Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body);
-        Task<TicketEntity> TicketAddRelated(Guid itemId, TicketAddRelatedDto body);
-
     }
 }

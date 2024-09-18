@@ -1,21 +1,20 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
-using TicketingSystem.Core;
+using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Repositories
 {
-    public class TicketsDbRepository : IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>
+    public class TicketsDbRepository(AppDbContext context) : IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>
     {
-        private readonly AppDbContext _dbContext;
-        private readonly Mapper _mapper;
-
-        public TicketsDbRepository(AppDbContext context)
-        {
-            _dbContext = context;
-            _mapper = new Mapper(new MapperConfiguration(config => config.CreateMap<TicketCreateDto, TicketEntity>()));
-        }
+        private readonly AppDbContext _dbContext = context;
+        private readonly Mapper _mapper = new(new MapperConfiguration(config => config
+        .CreateMap<TicketCreateDto, TicketEntity>()
+        .ForMember(dest => dest.ReportedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+        ));
 
         public async Task<IEnumerable<TicketEntity>> Get(TicketFiltersDto filters) 
         {
@@ -24,7 +23,7 @@ namespace TicketingSystem.Repositories
 
         public async Task<TicketEntity> Create(TicketCreateDto body)
         {
-            TicketEntity ticket = _mapper.Map<TicketEntity>(body);
+            var ticket = _mapper.Map<TicketEntity>(body);
 
             await _dbContext.TicketEntities.AddAsync(ticket);
             await _dbContext.SaveChangesAsync();
@@ -34,20 +33,26 @@ namespace TicketingSystem.Repositories
 
         public async Task<TicketEntity> Update(Guid ticketId, TicketUpdateDto body)
         {
-            TicketEntity? entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
-            foreach (var property in body.GetType().GetProperties())
+            TicketEntity entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
+
+            UpdateIfModified<string>(body.Title, entity, "Title");
+            UpdateIfModified<string>(body.Description, entity, "Description");
+            UpdateIfModified<Guid>(body.Assignee, entity, "Assignee");
+            UpdateIfModified<TicketStatusEnum>(body.Status, entity, "Status");
+
+            if (body.RelatedElements.IsPresent)
             {
-                string key = property.Name;
-                var value = property.GetValue(body);
+                await UpdateRelatedElements(entity, body.RelatedElements.Value ?? []);
+            }
 
-                var entry = _dbContext.Entry<TicketEntity>(entity);
-                var propertyEntry = entry.Property(key);
+            bool hasChanges = _dbContext.ChangeTracker.HasChanges();
 
-                if (propertyEntry != null && propertyEntry.Metadata != null && value != null)
-                {
-                    propertyEntry.CurrentValue = value;
-                    propertyEntry.IsModified = true;
-                }
+            if (hasChanges)
+            {
+                PropertyEntry lastModifiedProps = _dbContext.Entry(entity).Property("LastModifiedDate");
+
+                lastModifiedProps.IsModified = true;
+                lastModifiedProps.CurrentValue = DateTime.UtcNow;
             }
 
             await _dbContext.SaveChangesAsync();
@@ -55,28 +60,38 @@ namespace TicketingSystem.Repositories
             return entity;
         }
 
-        public async Task<TicketEntity> TicketAddRelated(Guid ticketId, TicketAddRelatedDto body)
+        private void UpdateIfModified<T>(Optional<T> item, TicketEntity entity, string propertyName)
         {
-            TicketEntity? entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
+            PropertyEntry prevProp = _dbContext.Entry(entity).Property(propertyName);
 
-            if (entity.Type != "Epic") throw new BadHttpRequestException("Tickets can be related only to Epics");
+            if (item.IsPresent)
+            {
+                prevProp.IsModified = true;
+                prevProp.CurrentValue = item.Value;
+            }
 
-            Guid[]? relatedElementIds = body.RelatedElements;
-            List<TicketEntity> relatedTickets = await _dbContext.TicketEntities.Where(p => relatedElementIds.Contains(p.Id)).ToListAsync();
+            if (item.IsPresent && propertyName == "Status" && item.Value?.ToString() == "Resolved")
+            {
+                PropertyEntry prevResolvedDateProp = _dbContext.Entry(entity).Property("ResolvedDate");
+                prevResolvedDateProp.IsModified = true;
+                prevResolvedDateProp.CurrentValue = DateTime.UtcNow;
+            }
+        }
 
-            if (relatedTickets.Count != relatedElementIds.Length) throw new BadHttpRequestException("Some of tickets not found");
+        private async Task UpdateRelatedElements(TicketEntity entity, Guid[] relatedElements)
+        {
+            if (entity.Type != TicketTypeEnum.Epic) throw new BadHttpRequestException("Tickets can be related only to Epics");
 
-            bool isAllRelatedElementsValid = relatedTickets.All(item => item.Type != "Epic");
+            List<TicketEntity> relatedTickets = await _dbContext.TicketEntities.Where(p => relatedElements.Contains(p.Id)).ToListAsync();
+
+            if (relatedTickets.Count != relatedElements.Length) throw new BadHttpRequestException("Some of tickets not found");
+
+            bool isAllRelatedElementsValid = relatedTickets.All(item => item.Type != TicketTypeEnum.Epic);
 
             if (!isAllRelatedElementsValid) throw new BadHttpRequestException("Epic cannot be related of other Epic");
 
-            Guid[] updatedElements = [.. (entity.RelatedElements ?? []), .. body.RelatedElements];
+            Guid[] updatedElements = [.. (entity.RelatedElements ?? []), .. relatedElements];
             entity.RelatedElements = (Guid[]?)updatedElements.Distinct().ToArray();
-
-            _dbContext.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return entity;
         }
     }
 }

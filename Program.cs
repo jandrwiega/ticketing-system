@@ -1,15 +1,19 @@
-using Microsoft.EntityFrameworkCore;
-using TicketingSystem.Core;
 using TicketingSystem.Repositories;
 using TicketingSystem.Services;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
-using AutoMapper;
+using TicketingSystem.Core.Database;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using TicketingSystem.Core.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
@@ -29,6 +33,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseMiddleware<TicketsMiddleware>();
+//app.UseMiddleware<TicketsResponseMiddleware>();
 
 app.Run();

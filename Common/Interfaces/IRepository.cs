@@ -10,6 +10,5 @@ namespace TicketingSystem.Common.Interfaces
         Task<IEnumerable<TEntity>> Get(TicketFiltersDto filters);
         Task<TEntity> Create(TCreateDto body);
         Task<TEntity> Update(Guid itemId, TUpdateDto body);
-        Task<TEntity> TicketAddRelated(Guid itemId, TicketAddRelatedDto body);
     }
 }

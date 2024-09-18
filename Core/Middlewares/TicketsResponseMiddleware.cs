@@ -3,7 +3,7 @@ using TicketingSystem.Common.Models;
 
 namespace TicketingSystem.Core.Middlewares
 {
-    public class TicketsMiddleware(RequestDelegate requestDelegate)
+    public class TicketsResponseMiddleware(RequestDelegate requestDelegate)
     {
         private readonly RequestDelegate _requestDelegate = requestDelegate;
 
@@ -27,7 +27,19 @@ namespace TicketingSystem.Core.Middlewares
 
         private static string FilterFields(string body)
         {
-            var json = JArray.Parse(body);
+            //try
+            //{
+            //    JArray json = JArray.Parse(body);
+
+            //    Console.Write(json)
+            //}
+            //catch (Exception error)
+            //{
+            //    Console.Write(error);
+            //}
+
+            JArray json = JArray.Parse(body);
+          
             foreach (var item in json)
             {
                 string? itemType = (string?)item["type"];
