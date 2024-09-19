@@ -1,4 +1,5 @@
 using System.Reflection;
+using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Models;
 
 namespace TicketingSystem.Core.Database
@@ -17,7 +18,9 @@ namespace TicketingSystem.Core.Database
 
                 if (key == "Type" && value != null)
                 {
-                    predicate = predicate.And(p => p.Type.ToString() == value.ToString());
+                    TicketTypeEnum enumValue = (TicketTypeEnum)Enum.Parse(typeof(TicketTypeEnum), (string)value, true);
+
+                    predicate = predicate.And(p => (int)p.Type == (int)enumValue);
                 }
 
                 if (key == "Assignee" && value != null)
@@ -27,7 +30,9 @@ namespace TicketingSystem.Core.Database
 
                 if (key == "Status" && value != null)
                 {
-                    predicate = predicate.And(p => p.Status.ToString() == value.ToString());
+                    TicketStatusEnum enumValue = (TicketStatusEnum)Enum.Parse(typeof(TicketStatusEnum), (string)value, true);
+
+                    predicate = predicate.And(p => (int)p.Status == (int)enumValue);
                 }
 
                 if (key == "AffectedVersion" && value != null)

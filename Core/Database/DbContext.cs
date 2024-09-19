@@ -4,10 +4,8 @@ using TicketingSystem.Common.Models;
 
 namespace TicketingSystem.Core.Database
 {
-    public class AppDbContext(IConfiguration configuration) : DbContext
+    public class AppDbContext(IConfiguration _configuration) : DbContext
     {
-        private readonly IConfiguration _configuration = configuration;
-
         public DbSet<TicketEntity> TicketEntities { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

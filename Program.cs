@@ -5,7 +5,7 @@ using TicketingSystem.Common.Models;
 using TicketingSystem.Core.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using TicketingSystem.Core.Middlewares;
+using TicketingSystem.Core.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,10 +29,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-//app.UseMiddleware<TicketsResponseMiddleware>();
-
 app.Run();

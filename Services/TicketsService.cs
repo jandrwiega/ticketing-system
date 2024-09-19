@@ -5,21 +5,19 @@ namespace TicketingSystem.Services
 {
     public class TicketsService(IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> _ticketsDbRepository) : ITicketsService
     {
-        private readonly IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> ticketsDbRepository = _ticketsDbRepository;
-
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
         {
-             return await ticketsDbRepository.Get(filters);
+             return await _ticketsDbRepository.Get(filters);
         }
 
         public async Task<TicketEntity> CreateTicket(TicketCreateDto body)
         {
-            return await ticketsDbRepository.Create(body);
+            return await _ticketsDbRepository.Create(body);
         }
 
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
-            return await ticketsDbRepository.Update(ticketId, body);
+            return await _ticketsDbRepository.Update(ticketId, body);
         }
     }
 }

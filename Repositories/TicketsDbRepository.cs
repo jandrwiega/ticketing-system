@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
+using TicketingSystem.Core.Converters;
 using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Repositories
