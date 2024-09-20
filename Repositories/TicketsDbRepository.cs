@@ -22,9 +22,17 @@ namespace TicketingSystem.Repositories
 
             if (filters.Type is not null)
             {
-                TicketTypeEnum enumValue = (TicketTypeEnum)Enum.Parse(typeof(TicketTypeEnum), (string)filters.Type, true);
+                Enum.TryParse(typeof(TicketTypeEnum), filters.Type, true, out object? outValue);
+                if (outValue is not null)
+                {
+                    TicketTypeEnum enumValue = (TicketTypeEnum)outValue;
 
-                builder.Where(prop => prop.Type == enumValue);
+                    builder.Where(prop => prop.Type == enumValue);
+                }
+                else
+                {
+                    throw new Exception("Type not allowed");
+                }
             }
 
             if (filters.Assignee is not null)
@@ -34,9 +42,17 @@ namespace TicketingSystem.Repositories
 
             if (filters.Status is not null)
             {
-                TicketStatusEnum enumValue = (TicketStatusEnum)Enum.Parse(typeof(TicketStatusEnum), (string)filters.Status, true);
+                Enum.TryParse(typeof(TicketStatusEnum), filters.Status, true, out object? outValue);
+                if (outValue is not null)
+                {
+                    TicketStatusEnum enumValue = (TicketStatusEnum)outValue;
 
-                builder.Where(prop => prop.Status == enumValue);
+                    builder.Where(prop => prop.Status == enumValue);
+                }
+                else
+                {
+                    throw new Exception("Status not allowed");
+                }
             }
 
             if (filters.AffectedVersion is not null)
@@ -65,14 +81,14 @@ namespace TicketingSystem.Repositories
             {
                 if (entity.Type == TicketTypeEnum.Bug)
                 {
-                    UpdateIfModified(body.AffectedVersion, (value) => entity.AffectedVersion = value.ToString());
+                    UpdateIfModified(body.AffectedVersion, (value) => entity.AffectedVersion = value?.ToString());
                 }
                 else
                 {
                     throw new BadHttpRequestException("Affected version can be set only for a bug");
                 }
             }
-            UpdateIfModified(body.Title, (value) => entity.Title = value);
+            UpdateIfModified(body.Title, (value) => entity.Title = value ?? throw new Exception("Title cannot be null"));
             UpdateIfModified(body.Description, (value) => entity.Description = value);
             UpdateIfModified(body.Assignee, (value) => entity.Assignee = value);
             UpdateIfModified(body.Status, (value) =>
@@ -102,7 +118,7 @@ namespace TicketingSystem.Repositories
             return entity;
         }
 
-        private static void UpdateIfModified<T>(Optional<T> item, Action<T> action)
+        private static void UpdateIfModified<T>(Optional<T> item, Action<T?> action)
         {
             if (item.IsPresent)
             {
