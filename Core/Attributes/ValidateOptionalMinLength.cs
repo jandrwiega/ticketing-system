@@ -7,8 +7,13 @@ namespace TicketingSystem.Core.Attributes
     {
         private readonly int _length = length;
 
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
+            if (value == null)
+            {
+                return ValidationResult.Success;
+            }
+
             Optional<T> optional = (Optional<T>)value;
 
             if (optional.Value == null)

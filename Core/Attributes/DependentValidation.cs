@@ -4,10 +4,10 @@ namespace TicketingSystem.Core.Attributes
 {
     public class DependentValidation(string _dependentProperty, object _targetValue) : ValidationAttribute
     {
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var dtoProperties = validationContext.ObjectType.GetProperties();
-            var propertyInfo = dtoProperties.Single(prop => prop.Name.ToLower() == _dependentProperty.ToLower());
+            var propertyInfo = dtoProperties.Single(prop => prop.Name.Equals(_dependentProperty, StringComparison.CurrentCultureIgnoreCase));
 
             if (propertyInfo == null)
             {
@@ -16,7 +16,7 @@ namespace TicketingSystem.Core.Attributes
 
             var dependentValue = propertyInfo.GetValue(validationContext.ObjectInstance, null);
 
-            if (dependentValue == null || dependentValue.ToString().ToLower() != _targetValue.ToString().ToLower())
+            if (dependentValue == null || dependentValue.ToString()?.ToLower() != _targetValue.ToString()?.ToLower())
             {
                 return new ValidationResult(ErrorMessage);
             }
