@@ -22,6 +22,8 @@ namespace TicketingSystem.Common.Models
         [Required]
         public required TicketTypeEnum Type { get; set; }
 
+        [DependentValidation("type", "bug", ErrorMessage = "Affected version can be set only for a bug")]
+        public Version? AffectedVersion { get; set; }
     }
 
     public class TicketUpdateDto
@@ -43,5 +45,8 @@ namespace TicketingSystem.Common.Models
         [ValidateOptionalMinLengthArray<Guid>(1)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public Optional<Guid[]> RelatedElements { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public Optional<Version> AffectedVersion { get; set; }
     }
 }

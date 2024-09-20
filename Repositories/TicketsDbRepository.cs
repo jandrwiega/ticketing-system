@@ -13,8 +13,8 @@ namespace TicketingSystem.Repositories
     {
         private readonly AppDbContext _dbContext = context;
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
-        .CreateMap<TicketCreateDto, TicketEntity>()
-        .ForMember(dest => dest.ReportedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .CreateMap<TicketCreateDto, TicketEntity>()
+            .ForMember(dest => dest.ReportedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
         ));
 
         public async Task<IEnumerable<TicketEntity>> Get(TicketFiltersDto filters) 
@@ -36,6 +36,17 @@ namespace TicketingSystem.Repositories
         {
             TicketEntity entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
 
+            if (body.AffectedVersion.IsPresent)
+            {
+                if (entity.Type == TicketTypeEnum.Bug)
+                {
+                    UpdateIfModified<Version>(body.AffectedVersion, entity, "AffectedVersion");
+                }
+                else
+                {
+                    throw new BadHttpRequestException("Affected version can be set only for a bug");
+                }
+            }
             UpdateIfModified<string>(body.Title, entity, "Title");
             UpdateIfModified<string>(body.Description, entity, "Description");
             UpdateIfModified<Guid>(body.Assignee, entity, "Assignee");
@@ -68,7 +79,7 @@ namespace TicketingSystem.Repositories
             if (item.IsPresent)
             {
                 prevProp.IsModified = true;
-                prevProp.CurrentValue = item.Value;
+                prevProp.CurrentValue = item.Value?.GetType() == typeof(Version) ? item.Value.ToString() : item.Value;
             }
 
             if (item.IsPresent && propertyName == "Status" && item.Value?.ToString() == "Resolved")

@@ -37,7 +37,7 @@ namespace TicketingSystem.Core.Database
 
                 if (key == "AffectedVersion" && value != null)
                 {
-                    predicate = predicate.And(p => p.AffectedVersion == value.ToString());
+                    predicate = predicate.And(p => p.AffectedVersion.ToString() == value.ToString());
                 }
             }
 
