@@ -22,11 +22,8 @@ namespace TicketingSystem.Repositories
 
             if (filters.Type is not null)
             {
-                Enum.TryParse(typeof(TicketTypeEnum), filters.Type, true, out object? outValue);
-                if (outValue is not null)
+                if (Enum.TryParse(filters.Type, true, out TicketTypeEnum enumValue))
                 {
-                    TicketTypeEnum enumValue = (TicketTypeEnum)outValue;
-
                     builder.Where(prop => prop.Type == enumValue);
                 }
                 else
@@ -42,11 +39,8 @@ namespace TicketingSystem.Repositories
 
             if (filters.Status is not null)
             {
-                Enum.TryParse(typeof(TicketStatusEnum), filters.Status, true, out object? outValue);
-                if (outValue is not null)
+                if (Enum.TryParse(filters.Status, true, out TicketStatusEnum enumValue))
                 {
-                    TicketStatusEnum enumValue = (TicketStatusEnum)outValue;
-
                     builder.Where(prop => prop.Status == enumValue);
                 }
                 else
