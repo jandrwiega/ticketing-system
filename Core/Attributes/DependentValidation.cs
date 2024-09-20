@@ -7,7 +7,7 @@ namespace TicketingSystem.Core.Attributes
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var dtoProperties = validationContext.ObjectType.GetProperties();
-            var propertyInfo = dtoProperties.Single(prop => prop.Name.Equals(_dependentProperty, StringComparison.CurrentCultureIgnoreCase));
+            var propertyInfo = dtoProperties.SingleOrDefault(prop => prop.Name.Equals(_dependentProperty, StringComparison.CurrentCultureIgnoreCase));
 
             if (propertyInfo == null)
             {
@@ -16,7 +16,7 @@ namespace TicketingSystem.Core.Attributes
 
             var dependentValue = propertyInfo.GetValue(validationContext.ObjectInstance, null);
 
-            if (dependentValue == null || dependentValue.ToString()?.ToLower() != _targetValue.ToString()?.ToLower())
+            if (value is not null && dependentValue?.ToString()?.ToLower() != _targetValue.ToString()?.ToLower())
             {
                 return new ValidationResult(ErrorMessage);
             }

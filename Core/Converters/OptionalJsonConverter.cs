@@ -38,7 +38,7 @@ namespace TicketingSystem.Core.Converters
     {
         public override bool CanConvert(Type typeToConvert)
         {
-            var ret = false;
+            bool ret = false;
 
             if (typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Optional<>))
             {
@@ -50,11 +50,10 @@ namespace TicketingSystem.Core.Converters
 
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
+            Type TypeOfT = typeToConvert.GetGenericArguments()[0];
+            Type ConverterType = typeof(OptionalJsonConverter<>).MakeGenericType(TypeOfT);
 
-            var TypeOfT = typeToConvert.GetGenericArguments()[0];
-            var ConverterType = typeof(OptionalJsonConverter<>).MakeGenericType(TypeOfT);
-
-            var ret = Activator.CreateInstance(ConverterType) as JsonConverter
+            JsonConverter ret = Activator.CreateInstance(ConverterType) as JsonConverter
                 ?? throw new NullReferenceException()
                 ;
 
@@ -66,7 +65,6 @@ namespace TicketingSystem.Core.Converters
     {
         public override Optional<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-
             var RawValue = (T?)JsonSerializer.Deserialize(ref reader, typeof(T), options);
 
             var ret = new Optional<T>(RawValue);
@@ -76,7 +74,6 @@ namespace TicketingSystem.Core.Converters
 
         public override void Write(Utf8JsonWriter writer, Optional<T> value, JsonSerializerOptions options)
         {
-
             if (value.IsPresent)
             {
                 JsonSerializer.Serialize(writer, value.Value, options);

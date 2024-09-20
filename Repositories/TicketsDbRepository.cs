@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models;
@@ -19,7 +18,33 @@ namespace TicketingSystem.Repositories
 
         public async Task<IEnumerable<TicketEntity>> Get(TicketFiltersDto filters) 
         {
-            return await _dbContext.TicketEntities.ApplyFilter<TicketEntity>(filters).ToListAsync();
+            var builder = _dbContext.TicketEntities;
+
+            if (filters.Type is not null)
+            {
+                TicketTypeEnum enumValue = (TicketTypeEnum)Enum.Parse(typeof(TicketTypeEnum), (string)filters.Type, true);
+
+                builder.Where(prop => prop.Type == enumValue);
+            }
+
+            if (filters.Assignee is not null)
+            {
+                builder.Where(prop => prop.Assignee == filters.Assignee);
+            }
+
+            if (filters.Status is not null)
+            {
+                TicketStatusEnum enumValue = (TicketStatusEnum)Enum.Parse(typeof(TicketStatusEnum), (string)filters.Status, true);
+
+                builder.Where(prop => prop.Status == enumValue);
+            }
+
+            if (filters.AffectedVersion is not null)
+            {
+                builder.Where(prop => prop.AffectedVersion == filters.AffectedVersion);
+            }
+
+            return await builder.ToListAsync();
         }
 
         public async Task<TicketEntity> Create(TicketCreateDto body)
@@ -40,17 +65,25 @@ namespace TicketingSystem.Repositories
             {
                 if (entity.Type == TicketTypeEnum.Bug)
                 {
-                    UpdateIfModified<Version>(body.AffectedVersion, entity, "AffectedVersion");
+                    UpdateIfModified(body.AffectedVersion, (value) => entity.AffectedVersion = value.ToString());
                 }
                 else
                 {
                     throw new BadHttpRequestException("Affected version can be set only for a bug");
                 }
             }
-            UpdateIfModified<string>(body.Title, entity, "Title");
-            UpdateIfModified<string>(body.Description, entity, "Description");
-            UpdateIfModified<Guid>(body.Assignee, entity, "Assignee");
-            UpdateIfModified<TicketStatusEnum>(body.Status, entity, "Status");
+            UpdateIfModified(body.Title, (value) => entity.Title = value);
+            UpdateIfModified(body.Description, (value) => entity.Description = value);
+            UpdateIfModified(body.Assignee, (value) => entity.Assignee = value);
+            UpdateIfModified(body.Status, (value) =>
+            {
+                entity.Status = value;
+
+                if (value == TicketStatusEnum.Resolved)
+                {
+                    entity.ResolvedDate = DateTime.UtcNow;
+                }
+            });
 
             if (body.RelatedElements.IsPresent)
             {
@@ -61,10 +94,7 @@ namespace TicketingSystem.Repositories
 
             if (hasChanges)
             {
-                PropertyEntry lastModifiedProps = _dbContext.Entry(entity).Property("LastModifiedDate");
-
-                lastModifiedProps.IsModified = true;
-                lastModifiedProps.CurrentValue = DateTime.UtcNow;
+                entity.LastModifiedDate = DateTime.UtcNow;
             }
 
             await _dbContext.SaveChangesAsync();
@@ -72,21 +102,11 @@ namespace TicketingSystem.Repositories
             return entity;
         }
 
-        private void UpdateIfModified<T>(Optional<T> item, TicketEntity entity, string propertyName)
+        private static void UpdateIfModified<T>(Optional<T> item, Action<T> action)
         {
-            PropertyEntry prevProp = _dbContext.Entry(entity).Property(propertyName);
-
             if (item.IsPresent)
             {
-                prevProp.IsModified = true;
-                prevProp.CurrentValue = item.Value?.GetType() == typeof(Version) ? item.Value.ToString() : item.Value;
-            }
-
-            if (item.IsPresent && propertyName == "Status" && item.Value?.ToString() == "Resolved")
-            {
-                PropertyEntry prevResolvedDateProp = _dbContext.Entry(entity).Property("ResolvedDate");
-                prevResolvedDateProp.IsModified = true;
-                prevResolvedDateProp.CurrentValue = DateTime.UtcNow;
+                action(item.Value);
             }
         }
 
