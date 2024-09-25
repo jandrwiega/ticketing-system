@@ -5,7 +5,6 @@ using TicketingSystem.Common.Models;
 using TicketingSystem.Core.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using TicketingSystem.Core.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
 

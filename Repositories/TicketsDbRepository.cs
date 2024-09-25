@@ -18,13 +18,13 @@ namespace TicketingSystem.Repositories
 
         public async Task<IEnumerable<TicketEntity>> Get(TicketFiltersDto filters) 
         {
-            var builder = _dbContext.TicketEntities;
+            var builder = _dbContext.TicketEntities.AsQueryable();
 
             if (filters.Type is not null)
             {
                 if (Enum.TryParse(filters.Type, true, out TicketTypeEnum enumValue))
                 {
-                    builder.Where(prop => prop.Type == enumValue);
+                    builder = builder.Where(prop => prop.Type == enumValue);
                 }
                 else
                 {
@@ -34,14 +34,14 @@ namespace TicketingSystem.Repositories
 
             if (filters.Assignee is not null)
             {
-                builder.Where(prop => prop.Assignee == filters.Assignee);
+                builder = builder.Where(prop => prop.Assignee == filters.Assignee);
             }
 
             if (filters.Status is not null)
             {
                 if (Enum.TryParse(filters.Status, true, out TicketStatusEnum enumValue))
                 {
-                    builder.Where(prop => prop.Status == enumValue);
+                    builder = builder.Where(prop => prop.Status == enumValue);
                 }
                 else
                 {
@@ -51,7 +51,7 @@ namespace TicketingSystem.Repositories
 
             if (filters.AffectedVersion is not null)
             {
-                builder.Where(prop => prop.AffectedVersion == filters.AffectedVersion);
+                builder = builder.Where(prop => prop.AffectedVersion == filters.AffectedVersion);
             }
 
             return await builder.ToListAsync();
