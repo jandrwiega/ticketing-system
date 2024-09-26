@@ -262,8 +262,8 @@ namespace TicketSystem.IntegrationTests
         {
             yield return new object[]
             {
-                new TicketFiltersDto() { Type = "Epic", Status = "In_Progress" },
-                new TicketUpdateDto { Title = new Optional<string>("Updated item"), AffectedVersion = new Optional<Version>(new Version()) },
+                new TicketFiltersDto() { Type = "Epic" },
+                new TicketUpdateDto { AffectedVersion = new Optional<Version>(new Version()) },
                 HttpStatusCode.BadRequest
             };
         }
@@ -271,8 +271,8 @@ namespace TicketSystem.IntegrationTests
         {
             yield return new object[]
             {
-                new TicketFiltersDto() { Type = "Improvement", Status = "In_Progress" },
-                new TicketUpdateDto { Title = new Optional<string>("Updated item"), AffectedVersion = new Optional<Version>(new Version()) },
+                new TicketFiltersDto() { Type = "Improvement" },
+                new TicketUpdateDto { AffectedVersion = new Optional<Version>(new Version()) },
                 HttpStatusCode.BadRequest
             };
         }
@@ -280,7 +280,7 @@ namespace TicketSystem.IntegrationTests
         {
             yield return new object[]
             {
-                new TicketFiltersDto() { Type = "Epic", Status = "In_Progress" },
+                new TicketFiltersDto() { Type = "Epic" },
                 new TicketUpdateDto { Title = new Optional<string>(null) },
                 HttpStatusCode.InternalServerError
             };
@@ -293,11 +293,13 @@ namespace TicketSystem.IntegrationTests
         [MemberData(nameof(ExpectBadRequestOnTitleUpdateToNullValue))]
         public async Task UpdateTicket_ForNotValidParameters_ExpectException(TicketFiltersDto ticketIdDto, TicketUpdateDto dto, HttpStatusCode errorCode)
         {
+            await SetupTestData();
             TicketEntity? ticket = await GetTicket(ticketIdDto);
             var putUrl = $"{baseUrl}/{ticket?.Id ?? new Guid()}";
 
             var response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(errorCode);
+            await CleanDatabase();
         }
         #endregion
 
@@ -305,35 +307,35 @@ namespace TicketSystem.IntegrationTests
         public static IEnumerable<object[]> TryUpdateBugAffectedVersion()
         {
             yield return new object[] {
-                new TicketFiltersDto() { Type = "Bug", Status = "In_Progress" },
+                new TicketFiltersDto() { Type = "Bug" },
                 new TicketUpdateDto { AffectedVersion = new Optional<Version>(new Version(1, 9)) }
             };
         }
         public static IEnumerable<object[]> TryUpdateTitle()
         {
             yield return new object[] {
-                new TicketFiltersDto() { Type = "Bug", Status = "In_Progress" },
+                new TicketFiltersDto() { Type = "Bug" },
                 new TicketUpdateDto { Title = new Optional<string>("Updated title") }
             };
         }
         public static IEnumerable<object[]> TryUpdateDescription()
         {
             yield return new object[] {
-                new TicketFiltersDto() { Type = "Bug", Status = "In_Progress" },
+                new TicketFiltersDto() { Type = "Bug" },
                 new TicketUpdateDto { Description = new Optional<string>("Updated description") }
             };
         }
         public static IEnumerable<object[]> TryUpdateAssignee()
         {
             yield return new object[] {
-                new TicketFiltersDto() { Type = "Bug", Status = "In_Progress" },
+                new TicketFiltersDto() { Type = "Bug" },
                 new TicketUpdateDto { Assignee = new Optional<Guid>(Guid.NewGuid()) }
             };
         }
         public static IEnumerable<object[]> TryUpdateStatusFromOpenToInProgress()
         {
             yield return new object[] {
-                new TicketFiltersDto() { Type = "Improvement", Status = "Open" },
+                new TicketFiltersDto() { Type = "Improvement" },
                 new TicketUpdateDto { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.In_Progress) }
             };
         }
@@ -346,11 +348,13 @@ namespace TicketSystem.IntegrationTests
         [MemberData(nameof(TryUpdateStatusFromOpenToInProgress))]
         public async Task UpdateTicket_ForValidParameters_ExpectSuccess(TicketFiltersDto ticketIdDto, TicketUpdateDto dto)
         {
+            await SetupTestData();
             TicketEntity? ticket = await GetTicket(ticketIdDto);
             var putUrl = $"{baseUrl}/{ticket?.Id}";
 
             var response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
+            await CleanDatabase();
         }
         #endregion
 
