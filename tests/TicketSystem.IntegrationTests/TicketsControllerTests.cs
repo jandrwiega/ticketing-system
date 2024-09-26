@@ -381,7 +381,7 @@ namespace TicketSystem.IntegrationTests
                 }
             );
 
-            Assert.True(updatedTicket.ResolvedDate > beforeUpdateTime);
+            Assert.True(updatedTicket?.ResolvedDate > beforeUpdateTime);
             await CleanDatabase();
         }
         #endregion
