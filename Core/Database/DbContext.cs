@@ -9,15 +9,6 @@ namespace TicketingSystem.Core.Database
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<TicketEntity> TicketEntities { get; set; }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    var connectionString = _configuration.GetConnectionString("DB");
-
-        //    Console.WriteLine(optionsBuilder.IsConfigured);
-
-        //    optionsBuilder.UseNpgsql(connectionString);
-        //}
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TicketEntity>().ToTable("tickets");

@@ -28,7 +28,7 @@ namespace TicketingSystem.Core.Attributes
 
             if (optional.Value.ToString()?.Length > _length)
             {
-                return new ValidationResult($"{validationContext.DisplayName} must contain no more that {_length} characters");
+                return new ValidationResult($"{validationContext?.DisplayName} must contain no more that {_length} characters");
             }
 
             return ValidationResult.Success;
