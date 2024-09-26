@@ -11,11 +11,11 @@ using System.Net;
 using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Core.Database;
 
-namespace TicketSystem.IntegrationTests
+namespace TicketingSystem.IntegrationTests
 {
     public class TicketsControllerTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
     {
-        private HttpClient _client = factory.WithWebHostBuilder(builder =>
+        private readonly HttpClient _client = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -29,10 +29,10 @@ namespace TicketSystem.IntegrationTests
             });
         }).CreateClient();
         private readonly string baseUrl = "/v1/tickets";
-        private readonly QueryParamsBuilder _queryParamsBuilder = new QueryParamsBuilder();
+        private readonly QueryParamsBuilder _queryParamsBuilder = new();
 
         #region Tests Helpers
-        TicketCreateDto[] testData = [
+        readonly TicketCreateDto[] testData = [
             new TicketCreateDto() { Title = "Test-Data-Bug", Type = TicketTypeEnum.Bug },
             new TicketCreateDto() { Title = "Test-Data-Improvement", Type = TicketTypeEnum.Improvement },
             new TicketCreateDto() { Title = "Test-Data-Epic", Type = TicketTypeEnum.Epic },
@@ -48,6 +48,16 @@ namespace TicketSystem.IntegrationTests
         {
             await _client.DeleteAsync(baseUrl);
         }
+
+        private static JsonSerializerOptions GetOptions()
+        {
+            return new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
+            };
+        }
+
         private async Task<TicketEntity?> GetTicket(TicketFiltersDto dto)
         {
             string filters = _queryParamsBuilder.BuildQueryParams<TicketFiltersDto>(dto);
@@ -58,11 +68,7 @@ namespace TicketSystem.IntegrationTests
             string content = await response.Content.ReadAsStringAsync();
             TicketEntity[]? apiResponse = JsonSerializer.Deserialize<TicketEntity[]>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
             return apiResponse?.FirstOrDefault();
@@ -77,7 +83,7 @@ namespace TicketSystem.IntegrationTests
             await SetupTestData();
             var response = await _client.GetAsync(baseUrl);
 
-            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
             await CleanDatabase();
         }
         #endregion
@@ -103,7 +109,7 @@ namespace TicketSystem.IntegrationTests
         public async Task GetTickets_WithStatusFilter_ReturnsAllWithCorrectStatus(TicketFiltersDto dto, TicketStatusEnum expectedStatus)
         {
             await SetupTestData();
-            string filters = _queryParamsBuilder.BuildQueryParams<TicketFiltersDto>(dto);
+            string filters = _queryParamsBuilder.BuildQueryParams(dto);
             string concatedUrlWithParams = $"{baseUrl}?" + filters;
 
             var response = await _client.GetAsync(concatedUrlWithParams);
@@ -111,14 +117,10 @@ namespace TicketSystem.IntegrationTests
             string content = await response.Content.ReadAsStringAsync();
             TicketEntity[]? apiResponse = JsonSerializer.Deserialize<TicketEntity[]>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
-            Assert.All<TicketEntity>((apiResponse ?? []), it => Assert.Equal(expectedStatus, it.Status));
+            Assert.All(apiResponse ?? [], it => Assert.Equal(expectedStatus, it.Status));
             await CleanDatabase();
         }
         #endregion
@@ -144,7 +146,7 @@ namespace TicketSystem.IntegrationTests
         public async Task GetTickets_WithTypeFilter_ReturnsAllWithCorrectType(TicketFiltersDto dto, TicketTypeEnum expectedType)
         {
             await SetupTestData();
-            string filters = _queryParamsBuilder.BuildQueryParams<TicketFiltersDto>(dto);
+            string filters = _queryParamsBuilder.BuildQueryParams(dto);
             string concatedUrlWithParams = $"{baseUrl}?" + filters;
 
             var response = await _client.GetAsync(concatedUrlWithParams);
@@ -152,14 +154,10 @@ namespace TicketSystem.IntegrationTests
             string content = await response.Content.ReadAsStringAsync();
             TicketEntity[]? apiResponse = JsonSerializer.Deserialize<TicketEntity[]>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
-            Assert.All<TicketEntity>((apiResponse ?? []), it => Assert.Equal(expectedType, it.Type));
+            Assert.All(apiResponse ?? [], it => Assert.Equal(expectedType, it.Type));
             await CleanDatabase();
         }
         #endregion
@@ -232,11 +230,7 @@ namespace TicketSystem.IntegrationTests
             string content = await response.Content.ReadAsStringAsync();
             TicketEntity? apiResponse = JsonSerializer.Deserialize<TicketEntity>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
             apiResponse.Should().BeEquivalentTo(dto, options => options
@@ -364,9 +358,9 @@ namespace TicketSystem.IntegrationTests
         {
             await SetupTestData();
             DateTime beforeUpdateTime = DateTime.UtcNow;
-            TicketEntity? ticket = await GetTicket(new TicketFiltersDto() {});
+            TicketEntity? ticket = await GetTicket(new TicketFiltersDto() { });
             var putUrl = $"{baseUrl}/{ticket?.Id}";
-            TicketUpdateDto body = new TicketUpdateDto { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.Resolved) };
+            TicketUpdateDto body = new() { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.Resolved) };
 
             var response = await _client.PutAsJsonAsync(putUrl, body);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -374,11 +368,7 @@ namespace TicketSystem.IntegrationTests
             var content = await response.Content.ReadAsStringAsync();
             TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
             Assert.True(updatedTicket?.ResolvedDate > beforeUpdateTime);
@@ -395,7 +385,7 @@ namespace TicketSystem.IntegrationTests
             TicketEntity? elementToAdd = await GetTicket(new TicketFiltersDto() { Type = "Bug" });
 
             var putUrl = $"{baseUrl}/{oldEntity?.Id}";
-            TicketUpdateDto body = new TicketUpdateDto { RelatedElements = new Optional<Guid[]>([(elementToAdd?.Id ?? new Guid())]) };
+            TicketUpdateDto body = new() { RelatedElements = new Optional<Guid[]>([(elementToAdd?.Id ?? new Guid())]) };
 
             var response = await _client.PutAsJsonAsync(putUrl, body);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -403,11 +393,7 @@ namespace TicketSystem.IntegrationTests
             var content = await response.Content.ReadAsStringAsync();
             TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
                 content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
-                }
+                GetOptions()
             );
 
             Assert.True(updatedTicket?.RelatedElements?.Length == (oldEntity?.RelatedElements?.Length ?? 0) + 1);
