@@ -5,6 +5,7 @@ using TicketingSystem.Common.Models;
 using TicketingSystem.Core.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>, TicketsDbRepository>();
-builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DB")));
 
 var app = builder.Build();
 

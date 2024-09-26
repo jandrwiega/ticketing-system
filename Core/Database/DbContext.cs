@@ -4,16 +4,19 @@ using TicketingSystem.Common.Models;
 
 namespace TicketingSystem.Core.Database
 {
-    public class AppDbContext(IConfiguration _configuration) : DbContext
+    public class AppDbContext : DbContext
     {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<TicketEntity> TicketEntities { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var connectionString = _configuration.GetConnectionString("DB");
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    var connectionString = _configuration.GetConnectionString("DB");
 
-            optionsBuilder.UseNpgsql(connectionString);
-        }
+        //    Console.WriteLine(optionsBuilder.IsConfigured);
+
+        //    optionsBuilder.UseNpgsql(connectionString);
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
