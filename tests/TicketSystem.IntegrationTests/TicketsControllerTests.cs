@@ -13,23 +13,53 @@ using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.IntegrationTests
 {
-    public class TicketsControllerTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+    public class TicketsControllerTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
     {
-        private readonly HttpClient _client = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                var dbContextOptions = services.SingleOrDefault(service => service.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                if (dbContextOptions != null)
-                {
-                    services.Remove(dbContextOptions);
-                }
+        private readonly WebApplicationFactory<Program> _factory;
+        private readonly HttpClient _client;
 
-                services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDB"));
-            });
-        }).CreateClient();
         private readonly string baseUrl = "/v1/tickets";
         private readonly QueryParamsBuilder _queryParamsBuilder = new();
+        private bool disposedValue;
+
+        public TicketsControllerTests(WebApplicationFactory<Program> factory)
+        {
+            _factory = factory;
+            _client = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    var dbContextOptions = services.SingleOrDefault(service => service.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    if (dbContextOptions != null)
+                    {
+                        services.Remove(dbContextOptions);
+                    }
+
+                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDB"));
+                });
+            }).CreateClient();
+
+            SetupTestData().Wait();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    CleanDatabase().Wait();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
         #region Tests Helpers
         readonly TicketCreateDto[] testData = [
@@ -37,6 +67,7 @@ namespace TicketingSystem.IntegrationTests
             new TicketCreateDto() { Title = "Test-Data-Improvement", Type = TicketTypeEnum.Improvement },
             new TicketCreateDto() { Title = "Test-Data-Epic", Type = TicketTypeEnum.Epic },
         ];
+
         private async Task SetupTestData()
         {
             foreach (var dto in testData)
@@ -80,11 +111,9 @@ namespace TicketingSystem.IntegrationTests
         [Fact]
         public async Task GetTickets_WithoutParameters_RetunsAllTickets()
         {
-            await SetupTestData();
             var response = await _client.GetAsync(baseUrl);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            await CleanDatabase();
         }
         #endregion
 
@@ -108,7 +137,6 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(ResolvedStatusFilters))]
         public async Task GetTickets_WithStatusFilter_ReturnsAllWithCorrectStatus(TicketFiltersDto dto, TicketStatusEnum expectedStatus)
         {
-            await SetupTestData();
             string filters = _queryParamsBuilder.BuildQueryParams(dto);
             string concatedUrlWithParams = $"{baseUrl}?" + filters;
 
@@ -121,7 +149,6 @@ namespace TicketingSystem.IntegrationTests
             );
 
             Assert.All(apiResponse ?? [], it => Assert.Equal(expectedStatus, it.Status));
-            await CleanDatabase();
         }
         #endregion
 
@@ -145,7 +172,6 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(EpicFilters))]
         public async Task GetTickets_WithTypeFilter_ReturnsAllWithCorrectType(TicketFiltersDto dto, TicketTypeEnum expectedType)
         {
-            await SetupTestData();
             string filters = _queryParamsBuilder.BuildQueryParams(dto);
             string concatedUrlWithParams = $"{baseUrl}?" + filters;
 
@@ -158,7 +184,6 @@ namespace TicketingSystem.IntegrationTests
             );
 
             Assert.All(apiResponse ?? [], it => Assert.Equal(expectedType, it.Type));
-            await CleanDatabase();
         }
         #endregion
         #endregion
@@ -287,13 +312,11 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(ExpectBadRequestOnTitleUpdateToNullValue))]
         public async Task UpdateTicket_ForNotValidParameters_ExpectException(TicketFiltersDto ticketIdDto, TicketUpdateDto dto, HttpStatusCode errorCode)
         {
-            await SetupTestData();
             TicketEntity? ticket = await GetTicket(ticketIdDto);
             var putUrl = $"{baseUrl}/{ticket?.Id ?? new Guid()}";
 
             var response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(errorCode);
-            await CleanDatabase();
         }
         #endregion
 
@@ -342,13 +365,11 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(TryUpdateStatusFromOpenToInProgress))]
         public async Task UpdateTicket_ForValidParameters_ExpectSuccess(TicketFiltersDto ticketIdDto, TicketUpdateDto dto)
         {
-            await SetupTestData();
             TicketEntity? ticket = await GetTicket(ticketIdDto);
             var putUrl = $"{baseUrl}/{ticket?.Id}";
 
             var response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            await CleanDatabase();
         }
         #endregion
 
@@ -356,7 +377,6 @@ namespace TicketingSystem.IntegrationTests
         [Fact]
         public async Task UpdateTicket_ForValidParameters_ExpectSuccessAndRelatedStatusUpdate()
         {
-            await SetupTestData();
             DateTime beforeUpdateTime = DateTime.UtcNow;
             TicketEntity? ticket = await GetTicket(new TicketFiltersDto() { });
             var putUrl = $"{baseUrl}/{ticket?.Id}";
@@ -372,7 +392,6 @@ namespace TicketingSystem.IntegrationTests
             );
 
             Assert.True(updatedTicket?.ResolvedDate > beforeUpdateTime);
-            await CleanDatabase();
         }
         #endregion
 
@@ -380,7 +399,6 @@ namespace TicketingSystem.IntegrationTests
         [Fact]
         public async Task UpdateTicket_ForValidParameters_ExpectAddRelatedElement()
         {
-            await SetupTestData();
             TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
             TicketEntity? elementToAdd = await GetTicket(new TicketFiltersDto() { Type = "Bug" });
 
@@ -397,7 +415,6 @@ namespace TicketingSystem.IntegrationTests
             );
 
             Assert.True(updatedTicket?.RelatedElements?.Length == (oldEntity?.RelatedElements?.Length ?? 0) + 1);
-            await CleanDatabase();
         }
         #endregion
         #endregion

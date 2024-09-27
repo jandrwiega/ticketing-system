@@ -19,5 +19,10 @@ namespace TicketingSystem.Services
         {
             return await _ticketsDbRepository.Update(ticketId, body);
         }
+
+        public void DeleteTickets()
+        {
+            _ticketsDbRepository.DeleteAll();
+        }
     }
 }
