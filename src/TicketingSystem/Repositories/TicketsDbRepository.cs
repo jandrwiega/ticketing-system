@@ -8,9 +8,8 @@ using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Repositories
 {
-    public class TicketsDbRepository(AppDbContext context) : IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>
+    public class TicketsDbRepository(AppDbContext _dbContext) : IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>
     {
-        private readonly AppDbContext _dbContext = context;
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
             .CreateMap<TicketCreateDto, TicketEntity>()
             .ForMember(dest => dest.ReportedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -138,9 +137,9 @@ namespace TicketingSystem.Repositories
 
         public void DeleteAll()
         {
-            var entities = context.TicketEntities.ToList();
-            context.TicketEntities.RemoveRange(entities);
-            context.SaveChanges();
+            var entities = _dbContext.TicketEntities.ToList();
+            _dbContext.TicketEntities.RemoveRange(entities);
+            _dbContext.SaveChanges();
         }
     }
 }
