@@ -10,6 +10,8 @@ using TicketingSystem.Core.Converters;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Core.Database;
+using FluentAssertions.Common;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TicketingSystem.IntegrationTests
 {
@@ -24,8 +26,7 @@ namespace TicketingSystem.IntegrationTests
 
         public TicketsControllerTests(WebApplicationFactory<Program> factory)
         {
-            _factory = factory;
-            _client = factory.WithWebHostBuilder(builder =>
+            _factory = factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
@@ -35,9 +36,10 @@ namespace TicketingSystem.IntegrationTests
                         services.Remove(dbContextOptions);
                     }
 
-                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDB"));
+                    services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDb"));
                 });
-            }).CreateClient();
+            });
+            _client = _factory.CreateClient();
 
             SetupTestData().Wait();
         }
@@ -48,7 +50,10 @@ namespace TicketingSystem.IntegrationTests
             {
                 if (disposing)
                 {
-                    CleanDatabase().Wait();
+                    using var scope = _factory.Services.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    context.Database.EnsureDeleted();
+                    context.Database.EnsureCreated();
                 }
 
                 disposedValue = true;
@@ -74,10 +79,6 @@ namespace TicketingSystem.IntegrationTests
             {
                 await _client.PostAsJsonAsync(baseUrl, dto);
             }
-        }
-        private async Task CleanDatabase()
-        {
-            await _client.DeleteAsync(baseUrl);
         }
 
         private static JsonSerializerOptions GetOptions()
@@ -262,7 +263,6 @@ namespace TicketingSystem.IntegrationTests
                 .Including(p => p.Type)
                 .Including(p => p.Title)
             );
-            await CleanDatabase();
         }
         #endregion
         #endregion

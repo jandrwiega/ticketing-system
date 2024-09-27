@@ -134,12 +134,5 @@ namespace TicketingSystem.Repositories
             Guid[] updatedElements = [.. (entity.RelatedElements ?? []), .. relatedElements];
             entity.RelatedElements = (Guid[]?)updatedElements.Distinct().ToArray();
         }
-
-        public void DeleteAll()
-        {
-            var entities = _dbContext.TicketEntities.ToList();
-            _dbContext.TicketEntities.RemoveRange(entities);
-            _dbContext.SaveChanges();
-        }
     }
 }

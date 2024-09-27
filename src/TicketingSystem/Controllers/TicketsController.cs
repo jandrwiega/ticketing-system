@@ -25,11 +25,5 @@ namespace TicketingSystem.Controllers
         {
             return await _ticketsService.UpdateTicket(ticketId, body);
         }
-
-        [HttpDelete]
-        public void DeleteTickets()
-        {
-            _ticketsService.DeleteTickets();
-        }
     }
 }
