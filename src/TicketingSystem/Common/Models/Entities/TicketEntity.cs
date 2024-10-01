@@ -1,6 +1,7 @@
-﻿using TicketingSystem.Common.Enums;
+﻿using System.Collections.ObjectModel;
+using TicketingSystem.Common.Enums;
 
-namespace TicketingSystem.Common.Models
+namespace TicketingSystem.Common.Models.Entities
 {
     public class TicketEntity
     {
@@ -15,5 +16,6 @@ namespace TicketingSystem.Common.Models
         public TicketTypeEnum Type { get; set; }
         public string? AffectedVersion { get; set; }
         public Guid[]? RelatedElements { get; set; }
+        public Collection<TagEntity> Tags { get; set; } = [];
     }
 }

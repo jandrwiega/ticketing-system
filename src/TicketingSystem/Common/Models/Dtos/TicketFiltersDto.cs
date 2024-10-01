@@ -1,4 +1,4 @@
-﻿namespace TicketingSystem.Common.Models
+﻿namespace TicketingSystem.Common.Models.Dtos
 {
     public class TicketFiltersDto
     {

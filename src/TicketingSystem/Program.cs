@@ -1,12 +1,13 @@
 using TicketingSystem.Repositories;
 using TicketingSystem.Services;
 using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models;
 using TicketingSystem.Core.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Common.Models.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,8 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
-builder.Services.AddScoped<IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>, TicketsDbRepository>();
+builder.Services.AddScoped<IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>, TicketsDbRepository>();
+builder.Services.AddScoped<ITagsRepository<TagEntity>, TicketsTagsDbRepository>();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DB")));
 builder.Services.AddRazorPages();
 builder.Host.UseSerilog((context, configuration) =>

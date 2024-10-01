@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using TicketingSystem;
 using FluentAssertions;
-using TicketingSystem.Common.Models;
 using TicketingSystem.Common.Enums;
 using TicketSystem.IntegrationTests.Helpers;
 using System.Text.Json;
@@ -12,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Core.Database;
 using FluentAssertions.Common;
 using Microsoft.Extensions.DependencyInjection;
+using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Common.Models.Dtos;
 
 namespace TicketingSystem.IntegrationTests
 {

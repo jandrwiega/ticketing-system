@@ -2,14 +2,15 @@
 using Serilog;
 using Serilog.Core;
 using TicketingSystem.Common.Enums;
-using TicketingSystem.Common.Models;
+using TicketingSystem.Common.Models.Entities;
 
 namespace TicketingSystem.Core.Database
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<TicketEntity> TicketEntities { get; set; }
+        public DbSet<TagEntity> TagEntities { get; set; }
+
         public Logger logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .Enrich.FromLogContext()
@@ -22,8 +23,20 @@ namespace TicketingSystem.Core.Database
             try
             {
                 modelBuilder.Entity<TicketEntity>().ToTable("tickets");
+                modelBuilder.Entity<TagEntity>().ToTable("tags");
+                
                 modelBuilder.HasPostgresEnum<TicketTypeEnum>("TicketTypeEnum");
                 modelBuilder.HasPostgresEnum<TicketStatusEnum>("TicketStatusEnum");
+
+                modelBuilder.Entity<TicketEntity>()
+                    .HasMany(s => s.Tags)
+                    .WithMany(c => c.Tickets)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "TagEntityTicketEntity",
+                        j => j.HasOne<TagEntity>().WithMany().HasForeignKey("TicketId"),
+                        j => j.HasOne<TicketEntity>().WithMany().HasForeignKey("TagId")
+                    );
+
                 base.OnModelCreating(modelBuilder);
 
                 logger.Information("Database model created successfully");

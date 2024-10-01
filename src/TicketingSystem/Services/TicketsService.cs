@@ -1,9 +1,15 @@
-﻿using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models;
+﻿using System.Collections.ObjectModel;
+using TicketingSystem.Common.Enums;
+using TicketingSystem.Common.Interfaces;
+using TicketingSystem.Common.Models.Dtos;
+using TicketingSystem.Common.Models.Entities;
 
 namespace TicketingSystem.Services
 {
-    public class TicketsService(IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto> _ticketsDbRepository) : ITicketsService
+    public class TicketsService(
+        IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
+        ITagsRepository<TagEntity> _ticketTagsDbRepository
+        ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
         {
@@ -12,12 +18,38 @@ namespace TicketingSystem.Services
 
         public async Task<TicketEntity> CreateTicket(TicketCreateDto body)
         {
-            return await _ticketsDbRepository.Create(body);
+            Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+
+            TicketSaveDto UpdatedBody = new()
+            { 
+                Title = body.Title,
+                Type = body.Type,
+                Tags = Tags,
+                AffectedVersion = body.AffectedVersion,
+                Assignee = body.Assignee,
+                Description = body.Description,
+                Status = body.Status
+            };
+
+            return await _ticketsDbRepository.Create(UpdatedBody);
         }
 
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
-            return await _ticketsDbRepository.Update(ticketId, body);
+            Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+
+            TicketUpdateSaveDto UpdatedBody = new()
+            {
+                Title = body.Title,
+                RelatedElements = body.RelatedElements,
+                Tags = Tags,
+                AffectedVersion = body.AffectedVersion,
+                Assignee = body.Assignee,
+                Description = body.Description,
+                Status = body.Status
+            };
+
+            return await _ticketsDbRepository.Update(ticketId, UpdatedBody);
         }
     }
 }

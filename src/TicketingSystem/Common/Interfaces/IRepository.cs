@@ -1,4 +1,4 @@
-﻿using TicketingSystem.Common.Models;
+﻿using TicketingSystem.Common.Models.Dtos;
 
 namespace TicketingSystem.Common.Interfaces
 {

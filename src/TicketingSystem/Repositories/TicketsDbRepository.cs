@@ -1,17 +1,22 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models;
+using TicketingSystem.Common.Models.Dtos;
+using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Core.Converters;
 using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Repositories
 {
-    public class TicketsDbRepository(AppDbContext _dbContext) : IRepository<TicketEntity, TicketCreateDto, TicketUpdateDto>
+    public class TicketsDbRepository(
+        AppDbContext _dbContext,
+        ITagsRepository<TagEntity> _ticketTagsDbRepository
+        ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
-            .CreateMap<TicketCreateDto, TicketEntity>()
+            .CreateMap<TicketSaveDto, TicketEntity>()
             .ForMember(dest => dest.ReportedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
         ));
 
@@ -53,10 +58,12 @@ namespace TicketingSystem.Repositories
                 builder = builder.Where(prop => prop.AffectedVersion == filters.AffectedVersion);
             }
 
-            return await builder.ToListAsync();
+            return await builder
+                .Include(prop => prop.Tags)
+                .ToListAsync();
         }
 
-        public async Task<TicketEntity> Create(TicketCreateDto body)
+        public async Task<TicketEntity> Create(TicketSaveDto body)
         {
             var ticket = _mapper.Map<TicketEntity>(body);
 
@@ -66,9 +73,10 @@ namespace TicketingSystem.Repositories
             return ticket;
         }
 
-        public async Task<TicketEntity> Update(Guid ticketId, TicketUpdateDto body)
+        public async Task<TicketEntity> Update(Guid ticketId, TicketUpdateSaveDto body)
         {
-            TicketEntity entity = await _dbContext.TicketEntities.FindAsync(ticketId) ?? throw new KeyNotFoundException("Ticket not found");
+            var builder = _dbContext.TicketEntities.AsQueryable();
+            TicketEntity entity = await builder.Include(it => it.Tags).Where(it => it.Id == ticketId).FirstAsync() ?? throw new KeyNotFoundException("Ticket not found");
 
             if (body.AffectedVersion.IsPresent)
             {
@@ -97,6 +105,12 @@ namespace TicketingSystem.Repositories
             if (body.RelatedElements.IsPresent)
             {
                 await UpdateRelatedElements(entity, body.RelatedElements.Value ?? []);
+            }
+
+            if (body.Tags.Count > 0)
+            {
+                await _ticketTagsDbRepository.DeleteTagsRelation(ticketId, entity.Tags);
+                entity.Tags = body.Tags;
             }
 
             bool hasChanges = _dbContext.ChangeTracker.HasChanges();
