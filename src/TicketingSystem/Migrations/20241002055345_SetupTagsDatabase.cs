@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TicketingSystem.Migrations
 {
     /// <inheritdoc />
-    public partial class SetupTagsTable : Migration
+    public partial class SetupTagsDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,14 +34,14 @@ namespace TicketingSystem.Migrations
                 {
                     table.PrimaryKey("PK_TagEntityTicketEntity", x => new { x.TagId, x.TicketId });
                     table.ForeignKey(
-                        name: "FK_TagEntityTicketEntity_tags_TicketId",
-                        column: x => x.TicketId,
+                        name: "FK_TagEntityTicketEntity_tags_TagId",
+                        column: x => x.TagId,
                         principalTable: "tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TagEntityTicketEntity_tickets_TagId",
-                        column: x => x.TagId,
+                        name: "FK_TagEntityTicketEntity_tickets_TicketId",
+                        column: x => x.TicketId,
                         principalTable: "tickets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);

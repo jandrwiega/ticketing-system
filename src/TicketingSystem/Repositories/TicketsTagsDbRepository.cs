@@ -41,8 +41,8 @@ namespace TicketingSystem.Repositories
             {
                 Set.Remove(new Dictionary<string, object>
                 {
-                    { "TicketId", tag.Id },
-                    { "TagId", ticketId }
+                    { "TicketId", ticketId },
+                    { "TagId", tag.Id }
                 });
             }
 

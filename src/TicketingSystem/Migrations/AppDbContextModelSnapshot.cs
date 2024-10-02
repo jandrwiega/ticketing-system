@@ -36,7 +36,7 @@ namespace TicketingSystem.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("TagEntityTicketEntity", (string)null);
+                    b.ToTable("TagEntityTicketEntity");
                 });
 
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TagEntity", b =>
@@ -98,13 +98,13 @@ namespace TicketingSystem.Migrations
 
             modelBuilder.Entity("TagEntityTicketEntity", b =>
                 {
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketEntity", null)
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TagEntity", null)
                         .WithMany()
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TagEntity", null)
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketEntity", null)
                         .WithMany()
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -33,8 +33,8 @@ namespace TicketingSystem.Core.Database
                     .WithMany(c => c.Tickets)
                     .UsingEntity<Dictionary<string, object>>(
                         "TagEntityTicketEntity",
-                        j => j.HasOne<TagEntity>().WithMany().HasForeignKey("TicketId"),
-                        j => j.HasOne<TicketEntity>().WithMany().HasForeignKey("TagId")
+                        j => j.HasOne<TagEntity>().WithMany().HasForeignKey("TagId"),
+                        j => j.HasOne<TicketEntity>().WithMany().HasForeignKey("TicketId")
                     );
 
                 base.OnModelCreating(modelBuilder);

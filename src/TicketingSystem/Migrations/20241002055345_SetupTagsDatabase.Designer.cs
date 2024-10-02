@@ -12,8 +12,8 @@ using TicketingSystem.Core.Database;
 namespace TicketingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241001095845_SetupTagsTable")]
-    partial class SetupTagsTable
+    [Migration("20241002055345_SetupTagsDatabase")]
+    partial class SetupTagsDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,13 +101,13 @@ namespace TicketingSystem.Migrations
 
             modelBuilder.Entity("TagEntityTicketEntity", b =>
                 {
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketEntity", null)
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TagEntity", null)
                         .WithMany()
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TagEntity", null)
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketEntity", null)
                         .WithMany()
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
