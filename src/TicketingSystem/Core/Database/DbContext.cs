@@ -10,6 +10,7 @@ namespace TicketingSystem.Core.Database
     {
         public DbSet<TicketEntity> TicketEntities { get; set; }
         public DbSet<TagEntity> TagEntities { get; set; }
+        public DbSet<TicketMetadataEntity> TicketMetadataEntities { get; set; }
 
         public Logger logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -24,9 +25,11 @@ namespace TicketingSystem.Core.Database
             {
                 modelBuilder.Entity<TicketEntity>().ToTable("tickets");
                 modelBuilder.Entity<TagEntity>().ToTable("tags");
+                modelBuilder.Entity<TicketMetadataEntity>().ToTable("tickets_metadata");
                 
                 modelBuilder.HasPostgresEnum<TicketTypeEnum>("TicketTypeEnum");
                 modelBuilder.HasPostgresEnum<TicketStatusEnum>("TicketStatusEnum");
+                modelBuilder.HasPostgresEnum<TicketMetadataTypeEnum>("TicketMetadataTypeEnum");
 
                 modelBuilder.Entity<TicketEntity>()
                     .HasMany(s => s.Tags)
@@ -36,6 +39,12 @@ namespace TicketingSystem.Core.Database
                         j => j.HasOne<TagEntity>().WithMany().HasForeignKey("TagId"),
                         j => j.HasOne<TicketEntity>().WithMany().HasForeignKey("TicketId")
                     );
+
+                modelBuilder.Entity<TicketMetadataEntity>()
+                    .HasOne(m => m.TicketEntity)
+                    .WithMany(t => t.Metadata)
+                    .HasForeignKey(m => m.TicketId)
+                    .IsRequired(false);
 
                 base.OnModelCreating(modelBuilder);
 

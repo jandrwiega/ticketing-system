@@ -7,7 +7,7 @@ using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Repositories
 {
-    public class TicketsTagsDbRepository(AppDbContext _dbContext) : ITagsRepository<TagEntity>
+    public class TicketsTagsDbRepository(AppDbContext _dbContext) : ITagsRepository
     {
         public async Task<Collection<TagEntity>> GetOrCreateTags(string[] tags)
         {

@@ -8,7 +8,8 @@ namespace TicketingSystem.Services
 {
     public class TicketsService(
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
-        ITagsRepository<TagEntity> _ticketTagsDbRepository
+        ITagsRepository _ticketTagsDbRepository,
+        ITicketMetadataRepository _ticketMapDbRepository
         ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
@@ -19,6 +20,7 @@ namespace TicketingSystem.Services
         public async Task<TicketEntity> CreateTicket(TicketCreateDto body)
         {
             Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            Collection<TicketMetadataEntity> TicketMetadata = await _ticketMapDbRepository.CreateMetadata(body.Metadata ?? []);
 
             TicketSaveDto UpdatedBody = new()
             { 
@@ -28,7 +30,8 @@ namespace TicketingSystem.Services
                 AffectedVersion = body.AffectedVersion,
                 Assignee = body.Assignee,
                 Description = body.Description,
-                Status = body.Status
+                Status = body.Status,
+                Metadata = TicketMetadata
             };
 
             return await _ticketsDbRepository.Create(UpdatedBody);
@@ -37,6 +40,7 @@ namespace TicketingSystem.Services
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
             Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            Collection<TicketMetadataEntity> TicketMetadata = await _ticketMapDbRepository.UpdateMetadata(body.Metadata ?? [], ticketId);
 
             TicketUpdateSaveDto UpdatedBody = new()
             {
@@ -46,7 +50,8 @@ namespace TicketingSystem.Services
                 AffectedVersion = body.AffectedVersion,
                 Assignee = body.Assignee,
                 Description = body.Description,
-                Status = body.Status
+                Status = body.Status,
+                Metadata = TicketMetadata
             };
 
             return await _ticketsDbRepository.Update(ticketId, UpdatedBody);

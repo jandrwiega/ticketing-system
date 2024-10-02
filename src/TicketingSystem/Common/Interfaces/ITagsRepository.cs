@@ -3,9 +3,9 @@ using TicketingSystem.Common.Models.Entities;
 
 namespace TicketingSystem.Common.Interfaces
 {
-    public interface ITagsRepository<TEntity>
+    public interface ITagsRepository
     {
-        Task<Collection<TEntity>> GetOrCreateTags(string[] tags);
+        Task<Collection<TagEntity>> GetOrCreateTags(string[] tags);
         Task DeleteTagsRelation(Guid ticketId, Collection<TagEntity> tags);
     }
 }

@@ -20,7 +20,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>, TicketsDbRepository>();
-builder.Services.AddScoped<ITagsRepository<TagEntity>, TicketsTagsDbRepository>();
+builder.Services.AddScoped<ITagsRepository, TicketsTagsDbRepository>();
+builder.Services.AddScoped<ITicketMetadataRepository, TicketsMetadataDbRepository>();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DB")));
 builder.Services.AddRazorPages();
 builder.Host.UseSerilog((context, configuration) =>

@@ -12,7 +12,7 @@ namespace TicketingSystem.Repositories
 {
     public class TicketsDbRepository(
         AppDbContext _dbContext,
-        ITagsRepository<TagEntity> _ticketTagsDbRepository
+        ITagsRepository _ticketTagsDbRepository
         ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
@@ -60,6 +60,7 @@ namespace TicketingSystem.Repositories
 
             return await builder
                 .Include(prop => prop.Tags)
+                .Include(prop => prop.Metadata)
                 .ToListAsync();
         }
 

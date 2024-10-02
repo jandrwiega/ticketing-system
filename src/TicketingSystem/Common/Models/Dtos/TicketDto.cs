@@ -28,14 +28,24 @@ namespace TicketingSystem.Common.Models.Dtos
         public Version? AffectedVersion { get; set; }
     }
 
+    public class TicketMetadata
+    {
+        public required string PropertyName { get; set; }
+        public required string PropertyValue { get; set; }
+        public required TicketMetadataTypeEnum PropertyType { get; set; }
+        public Guid? TicketId { get; set; }
+    }
+
     public class TicketCreateDto : TicketBaseDto
     {
         public string[]? Tags { get; set; }
+        public Collection<TicketMetadata>? Metadata { get; set; }
     }
 
     public class TicketSaveDto : TicketBaseDto
     {
         public Collection<TagEntity> Tags { get; set; } = [];
+        public Collection<TicketMetadataEntity>? Metadata { get; set; }
     }
 
     public class TicketUpdateBaseDto
@@ -65,10 +75,12 @@ namespace TicketingSystem.Common.Models.Dtos
     public class TicketUpdateDto : TicketUpdateBaseDto
     {
         public string[]? Tags { get; set; }
+        public Collection<TicketMetadata>? Metadata { get; set; }
     }
 
     public class TicketUpdateSaveDto : TicketUpdateBaseDto
     {
         public Collection<TagEntity> Tags { get; set; } = [];
+        public Collection<TicketMetadataEntity>? Metadata { get; set; }
     }
 }

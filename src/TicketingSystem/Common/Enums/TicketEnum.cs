@@ -13,4 +13,12 @@
         In_Progress,
         Resolved
     }
+
+    public enum TicketMetadataTypeEnum
+    {
+        String,
+        Int,
+        Bool,
+        Date
+    }
 }
