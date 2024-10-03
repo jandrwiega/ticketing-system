@@ -13,6 +13,7 @@ using FluentAssertions.Common;
 using Microsoft.Extensions.DependencyInjection;
 using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Common.Models.Dtos;
+using System.Collections.ObjectModel;
 
 namespace TicketingSystem.IntegrationTests
 {
@@ -416,6 +417,54 @@ namespace TicketingSystem.IntegrationTests
             );
 
             Assert.True(updatedTicket?.RelatedElements?.Length == (oldEntity?.RelatedElements?.Length ?? 0) + 1);
+        }
+        #endregion
+
+        #region Update Tickets - Expect add tag
+        [Fact]
+        public async Task UpdateTicket_ForValidParameters_ExpectAddTag()
+        {
+            TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
+
+            var putUrl = $"{baseUrl}/{oldEntity?.Id}";
+            TicketUpdateDto body = new() { Tags = ["Tag1", "Tag2"] };
+
+            var response = await _client.PutAsJsonAsync(putUrl, body);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var content = await response.Content.ReadAsStringAsync();
+            TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
+                content,
+                GetOptions()
+            );
+
+            Assert.True(updatedTicket?.Tags?.Count == body.Tags.Length);
+        }
+        #endregion
+
+        #region Update Tickets - Expect add metadata
+        [Fact]
+        public async Task UpdateTicket_ForValidParameters_ExpectAddMetadata()
+        {
+            TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
+
+            var putUrl = $"{baseUrl}/{oldEntity?.Id}";
+            Collection<TicketMetadata> Metadata =
+            [
+                new TicketMetadata() { TicketId = oldEntity?.Id, PropertyName = "Metadata", PropertyType = TicketMetadataTypeEnum.String, PropertyValue = "Metadata Value" }
+            ];
+            TicketUpdateDto body = new() { Metadata = Metadata };
+
+            var response = await _client.PutAsJsonAsync(putUrl, body);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var content = await response.Content.ReadAsStringAsync();
+            TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
+                content,
+                GetOptions()
+            );
+
+            Assert.True(updatedTicket?.Metadata?.Count == body.Metadata.Count);
         }
         #endregion
         #endregion
