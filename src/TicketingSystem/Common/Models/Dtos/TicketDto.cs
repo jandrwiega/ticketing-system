@@ -54,7 +54,7 @@ namespace TicketingSystem.Common.Models.Dtos
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public Optional<string> Title { get; set; }
 
-        [ValidateOptionalMaxLength<string>(255)]
+        [ValidateOptionalMaxLength<string>(2000)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public Optional<string> Description { get; set; }
 
