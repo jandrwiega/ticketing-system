@@ -19,7 +19,6 @@ namespace TicketingSystem.Common.Models.Entities
     {
         public Guid Id { get; set; }
         public required string PropertyName { get; set; }
-        //public required string PropertyValue { get; set; }
         public TicketMetadataTypeEnum PropertyType { get; set; }
         [JsonIgnore]
         public Collection<TicketConfigurationMapEntity> Configurations { get; set; } = [];

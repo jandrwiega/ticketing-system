@@ -2,8 +2,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Newtonsoft.Json.Linq;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicketingSystem.Core.Database;
 
@@ -12,9 +12,11 @@ using TicketingSystem.Core.Database;
 namespace TicketingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241004080808_DeleteCustomMetadataForTickets")]
+    partial class DeleteCustomMetadataForTickets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,17 +89,17 @@ namespace TicketingSystem.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("8a574380-ecc0-489c-96a1-1112f5f72ba1"),
+                            Id = new Guid("51f4e55f-d274-496e-8c38-803ed72b1fb5"),
                             TicketType = 0
                         },
                         new
                         {
-                            Id = new Guid("09ff2f50-c226-4847-a79f-366ec9be5072"),
+                            Id = new Guid("df44f012-eef2-470f-9920-ee9f415eee57"),
                             TicketType = 1
                         },
                         new
                         {
-                            Id = new Guid("0ea5bdd8-d952-4d17-9beb-e9520f3ade9e"),
+                            Id = new Guid("0c9edcab-e027-44f8-99f5-95524cd3e856"),
                             TicketType = 2
                         });
                 });
@@ -122,10 +124,6 @@ namespace TicketingSystem.Migrations
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<JObject>("Metadata")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
 
                     b.Property<Guid[]>("RelatedElements")
                         .HasColumnType("uuid[]");

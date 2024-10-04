@@ -22,7 +22,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>, TicketsDbRepository>();
 builder.Services.AddScoped<ITagsRepository, TicketsTagsDbRepository>();
-builder.Services.AddScoped<ITicketMetadataRepository, TicketsMetadataDbRepository>();
 builder.Services.AddScoped<ITicketsConfigurationService, TicketsConfigurationService>();
 builder.Services.AddScoped<ITicketsConfigurationRepository, TicketsConfigurationRepository>();
 

@@ -5,6 +5,7 @@ using TicketingSystem.Core.Attributes;
 using TicketingSystem.Core.Converters;
 using TicketingSystem.Common.Models.Entities;
 using System.Collections.ObjectModel;
+using Newtonsoft.Json.Linq;
 
 namespace TicketingSystem.Common.Models.Dtos
 {
@@ -26,6 +27,7 @@ namespace TicketingSystem.Common.Models.Dtos
 
         [DependentValidation("type", "bug", ErrorMessage = "Affected version can be set only for a bug")]
         public Version? AffectedVersion { get; set; }
+        public Dictionary<string, string>? Metadata { get; set; }
     }
 
     public class TicketMetadata
@@ -39,13 +41,11 @@ namespace TicketingSystem.Common.Models.Dtos
     public class TicketCreateDto : TicketBaseDto
     {
         public string[]? Tags { get; set; }
-        public Collection<TicketMetadata>? Metadata { get; set; }
     }
 
     public class TicketSaveDto : TicketBaseDto
     {
         public Collection<TagEntity> Tags { get; set; } = [];
-        public Collection<TicketMetadataEntity>? Metadata { get; set; }
     }
 
     public class TicketUpdateBaseDto
@@ -70,17 +70,16 @@ namespace TicketingSystem.Common.Models.Dtos
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public Optional<Version> AffectedVersion { get; set; }
+        public Dictionary<string, string>? Metadata { get; set; }
     }
 
     public class TicketUpdateDto : TicketUpdateBaseDto
     {
         public string[]? Tags { get; set; }
-        public Collection<TicketMetadata>? Metadata { get; set; }
     }
 
     public class TicketUpdateSaveDto : TicketUpdateBaseDto
     {
         public Collection<TagEntity> Tags { get; set; } = [];
-        public Collection<TicketMetadataEntity>? Metadata { get; set; }
     }
 }

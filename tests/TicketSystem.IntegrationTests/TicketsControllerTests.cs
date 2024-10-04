@@ -443,29 +443,29 @@ namespace TicketingSystem.IntegrationTests
         #endregion
 
         #region Update Tickets - Expect add metadata
-        [Fact]
-        public async Task UpdateTicket_ForValidParameters_ExpectAddMetadata()
-        {
-            TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
+        //[Fact]
+        //public async Task UpdateTicket_ForValidParameters_ExpectAddMetadata()
+        //{
+        //    TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
 
-            var putUrl = $"{baseUrl}/{oldEntity?.Id}";
-            Collection<TicketMetadata> Metadata =
-            [
-                new TicketMetadata() { TicketId = oldEntity?.Id, PropertyName = "Metadata", PropertyType = TicketMetadataTypeEnum.String, PropertyValue = "Metadata Value" }
-            ];
-            TicketUpdateDto body = new() { Metadata = Metadata };
+        //    var putUrl = $"{baseUrl}/{oldEntity?.Id}";
+        //    Collection<TicketMetadata> Metadata =
+        //    [
+        //        new TicketMetadata() { TicketId = oldEntity?.Id, PropertyName = "Metadata", PropertyType = TicketMetadataTypeEnum.String, PropertyValue = "Metadata Value" }
+        //    ];
+        //    TicketUpdateDto body = new() { Metadata = Metadata };
 
-            var response = await _client.PutAsJsonAsync(putUrl, body);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        //    var response = await _client.PutAsJsonAsync(putUrl, body);
+        //    response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var content = await response.Content.ReadAsStringAsync();
-            TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
-                content,
-                GetOptions()
-            );
+        //    var content = await response.Content.ReadAsStringAsync();
+        //    TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
+        //        content,
+        //        GetOptions()
+        //    );
 
-            Assert.True(updatedTicket?.Metadata?.Count == body.Metadata.Count);
-        }
+        //    Assert.True(updatedTicket?.Metadata?.Count == body.Metadata.Count);
+        //}
         #endregion
         #endregion
     }

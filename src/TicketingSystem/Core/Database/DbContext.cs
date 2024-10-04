@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
 using TicketingSystem.Common.Enums;
@@ -10,7 +12,6 @@ namespace TicketingSystem.Core.Database
     {
         public DbSet<TicketEntity> TicketEntities { get; set; }
         public DbSet<TagEntity> TagEntities { get; set; }
-        public DbSet<TicketMetadataEntity> TicketMetadataEntities { get; set; }
         public DbSet<TicketConfigurationMapEntity> TicketConfigurationMapEntities { get; set; }
         public DbSet<TicketMetadataFieldEntity> TicketMetadataFieldEntities { get; set; }
 
@@ -27,7 +28,6 @@ namespace TicketingSystem.Core.Database
             {
                 modelBuilder.Entity<TicketEntity>().ToTable("tickets");
                 modelBuilder.Entity<TagEntity>().ToTable("tags");
-                modelBuilder.Entity<TicketMetadataEntity>().ToTable("tickets_metadata");
                 modelBuilder.Entity<TicketConfigurationMapEntity>().ToTable("tickets_configuration");
                 modelBuilder.Entity<TicketMetadataFieldEntity>().ToTable("tickets_configuration_fields");
 
@@ -49,11 +49,14 @@ namespace TicketingSystem.Core.Database
                     .WithMany(mc => mc.Tickets)
                     .HasForeignKey(t => t.ConfigurationId);
 
-                modelBuilder.Entity<TicketMetadataEntity>()
-                    .HasOne(m => m.TicketEntity)
-                    .WithMany(t => t.Metadata)
-                    .HasForeignKey(m => m.TicketId)
-                    .IsRequired(false);
+                var converter = new ValueConverter<Dictionary<string, string>, string>(
+                     v => JsonConvert.SerializeObject(v),
+                     v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v));
+
+                modelBuilder.Entity<TicketEntity>()
+                    .Property(t => t.Metadata)
+                    .HasColumnType("jsonb")
+                    .HasConversion(converter);
 
                 modelBuilder.Entity<TicketConfigurationMapEntity>()
                     .HasMany(c => c.Metadata)

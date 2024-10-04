@@ -54,8 +54,7 @@ namespace TicketingSystem.Core.Converters
             Type ConverterType = typeof(OptionalJsonConverter<>).MakeGenericType(TypeOfT);
 
             JsonConverter ret = Activator.CreateInstance(ConverterType) as JsonConverter
-                ?? throw new NullReferenceException()
-                ;
+                ?? throw new NullReferenceException();
 
             return ret;
         }
