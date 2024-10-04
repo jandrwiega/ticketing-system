@@ -12,7 +12,8 @@ namespace TicketingSystem.Repositories
 {
     public class TicketsDbRepository(
         AppDbContext _dbContext,
-        ITagsRepository _ticketTagsDbRepository
+        ITagsRepository _ticketTagsDbRepository,
+        ITicketsConfigurationRepository _ticketsConfigurationRepository
         ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
@@ -61,12 +62,20 @@ namespace TicketingSystem.Repositories
             return await builder
                 .Include(prop => prop.Tags)
                 .Include(prop => prop.Metadata)
+                .Include(prop => prop.MetadataConfiguration)
+                .ThenInclude(metadataProp => metadataProp.Metadata)
                 .ToListAsync();
         }
 
         public async Task<TicketEntity> Create(TicketSaveDto body)
         {
-            var ticket = _mapper.Map<TicketEntity>(body);
+            TicketEntity ticket = _mapper.Map<TicketEntity>(body);
+            TicketConfigurationMapEntity? configuration = await _ticketsConfigurationRepository.GetConfigurationForType(body.Type);
+
+            if (configuration is not null)
+            {
+                ticket.ConfigurationId = configuration.Id;
+            }
 
             await _dbContext.TicketEntities.AddAsync(ticket);
             await _dbContext.SaveChangesAsync();
