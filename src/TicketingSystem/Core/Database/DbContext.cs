@@ -12,6 +12,7 @@ namespace TicketingSystem.Core.Database
     {
         public DbSet<TicketEntity> TicketEntities { get; set; }
         public DbSet<TagEntity> TagEntities { get; set; }
+        public DbSet<TicketMetadata> TicketMetadata { get; set; }
         public DbSet<TicketConfigurationMapEntity> TicketConfigurationMapEntities { get; set; }
         public DbSet<TicketMetadataFieldEntity> TicketMetadataFieldEntities { get; set; }
 
@@ -28,8 +29,9 @@ namespace TicketingSystem.Core.Database
             {
                 modelBuilder.Entity<TicketEntity>().ToTable("tickets");
                 modelBuilder.Entity<TagEntity>().ToTable("tags");
+                modelBuilder.Entity<TicketMetadata>().ToTable("metadata");
                 modelBuilder.Entity<TicketConfigurationMapEntity>().ToTable("tickets_configuration");
-                modelBuilder.Entity<TicketMetadataFieldEntity>().ToTable("tickets_configuration_fields");
+                modelBuilder.Entity<TicketMetadataFieldEntity>().ToTable("tickets_configuration_metadata");
 
                 modelBuilder.HasPostgresEnum<TicketTypeEnum>("TicketTypeEnum");
                 modelBuilder.HasPostgresEnum<TicketStatusEnum>("TicketStatusEnum");
@@ -48,6 +50,16 @@ namespace TicketingSystem.Core.Database
                     .HasOne(t => t.MetadataConfiguration)
                     .WithMany(mc => mc.Tickets)
                     .HasForeignKey(t => t.ConfigurationId);
+
+                modelBuilder.Entity<TicketEntity>()
+                    .HasMany(t => t.Metadata)
+                    .WithOne(m => m.Ticket)
+                    .HasForeignKey(m => m.TicketId);
+
+                modelBuilder.Entity<TicketMetadata>()
+                    .HasOne(m => m.MetadataConfiguration)
+                    .WithMany(c => c.MetadataValues)
+                    .HasForeignKey(m => m.MetadataId);
 
                 var converter = new ValueConverter<Dictionary<string, string>, string>(
                      v => JsonConvert.SerializeObject(v),

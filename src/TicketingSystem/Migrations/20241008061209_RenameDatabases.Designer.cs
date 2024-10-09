@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicketingSystem.Core.Database;
@@ -11,9 +12,11 @@ using TicketingSystem.Core.Database;
 namespace TicketingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241008061209_RenameDatabases")]
+    partial class RenameDatabases
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,6 +27,21 @@ namespace TicketingSystem.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "TicketStatusEnum", "ticket_status_enum", new[] { "open", "in_progress", "resolved" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "TicketTypeEnum", "ticket_type_enum", new[] { "bug", "improvement", "epic" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ConfigurationMapFieldsRelation", b =>
+                {
+                    b.Property<Guid>("ConfigurationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MetadataId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ConfigurationId", "MetadataId");
+
+                    b.HasIndex("MetadataId");
+
+                    b.ToTable("ConfigurationMapFieldsRelation");
+                });
 
             modelBuilder.Entity("TagEntityTicketEntity", b =>
                 {
@@ -38,21 +56,6 @@ namespace TicketingSystem.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("TagEntityTicketEntity");
-                });
-
-            modelBuilder.Entity("TicketConfigurationMapEntityTicketMetadataFieldEntity", b =>
-                {
-                    b.Property<Guid>("ConfigurationsId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("MetadataId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ConfigurationsId", "MetadataId");
-
-                    b.HasIndex("MetadataId");
-
-                    b.ToTable("TicketConfigurationMapEntityTicketMetadataFieldEntity");
                 });
 
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TagEntity", b =>
@@ -82,6 +85,23 @@ namespace TicketingSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("tickets_configuration", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("40696dc4-7d84-407a-b044-a010675db6e7"),
+                            TicketType = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("304acc8e-506b-4d42-af86-d0fa60f1c1ce"),
+                            TicketType = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("eeae012d-f05b-4667-98a8-0d3964e78400"),
+                            TicketType = 2
+                        });
                 });
 
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketEntity", b =>
@@ -104,6 +124,10 @@ namespace TicketingSystem.Migrations
 
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid[]>("RelatedElements")
                         .HasColumnType("uuid[]");
@@ -131,31 +155,6 @@ namespace TicketingSystem.Migrations
                     b.ToTable("tickets", (string)null);
                 });
 
-            modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketMetadata", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("MetadataId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TicketId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MetadataId");
-
-                    b.HasIndex("TicketId");
-
-                    b.ToTable("metadata", (string)null);
-                });
-
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketMetadataFieldEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -174,6 +173,21 @@ namespace TicketingSystem.Migrations
                     b.ToTable("tickets_configuration_metadata", (string)null);
                 });
 
+            modelBuilder.Entity("ConfigurationMapFieldsRelation", b =>
+                {
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketConfigurationMapEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ConfigurationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketMetadataFieldEntity", null)
+                        .WithMany()
+                        .HasForeignKey("MetadataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TagEntityTicketEntity", b =>
                 {
                     b.HasOne("TicketingSystem.Common.Models.Entities.TagEntity", null)
@@ -189,22 +203,6 @@ namespace TicketingSystem.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TicketConfigurationMapEntityTicketMetadataFieldEntity", b =>
-                {
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketConfigurationMapEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ConfigurationsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketMetadataFieldEntity", null)
-                        .WithMany()
-                        .HasForeignKey("MetadataId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_TicketConfigurationMapEntityTicketMetadataFieldEntity_tick~1");
-                });
-
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketEntity", b =>
                 {
                     b.HasOne("TicketingSystem.Common.Models.Entities.TicketConfigurationMapEntity", "MetadataConfiguration")
@@ -216,36 +214,9 @@ namespace TicketingSystem.Migrations
                     b.Navigation("MetadataConfiguration");
                 });
 
-            modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketMetadata", b =>
-                {
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketMetadataFieldEntity", "MetadataConfiguration")
-                        .WithMany("MetadataValues")
-                        .HasForeignKey("MetadataId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TicketingSystem.Common.Models.Entities.TicketEntity", null)
-                        .WithMany("Metadata")
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MetadataConfiguration");
-                });
-
             modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketConfigurationMapEntity", b =>
                 {
                     b.Navigation("Tickets");
-                });
-
-            modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketEntity", b =>
-                {
-                    b.Navigation("Metadata");
-                });
-
-            modelBuilder.Entity("TicketingSystem.Common.Models.Entities.TicketMetadataFieldEntity", b =>
-                {
-                    b.Navigation("MetadataValues");
                 });
 #pragma warning restore 612, 618
         }

@@ -22,6 +22,8 @@ namespace TicketingSystem.Common.Models.Entities
         public TicketMetadataTypeEnum PropertyType { get; set; }
         [JsonIgnore]
         public Collection<TicketConfigurationMapEntity> Configurations { get; set; } = [];
+        [JsonIgnore]
+        public Collection<TicketMetadata> MetadataValues { get; set; } = [];
 
         public TicketMetadataFieldEntity() => Id = Guid.NewGuid();
     }

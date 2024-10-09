@@ -442,30 +442,31 @@ namespace TicketingSystem.IntegrationTests
         }
         #endregion
 
-        #region Update Tickets - Expect add metadata
-        //[Fact]
-        //public async Task UpdateTicket_ForValidParameters_ExpectAddMetadata()
-        //{
-        //    TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
+        #region Update Tickets - Expect handle correct metadata update
+        [Fact]
+        public async Task UpdateTicket_ForValidParameters_ExpectAddMetadata()
+        {
+            TicketEntity? oldEntity = await GetTicket(new TicketFiltersDto() { Type = "Epic" });
 
-        //    var putUrl = $"{baseUrl}/{oldEntity?.Id}";
-        //    Collection<TicketMetadata> Metadata =
-        //    [
-        //        new TicketMetadata() { TicketId = oldEntity?.Id, PropertyName = "Metadata", PropertyType = TicketMetadataTypeEnum.String, PropertyValue = "Metadata Value" }
-        //    ];
-        //    TicketUpdateDto body = new() { Metadata = Metadata };
+            var putUrl = $"{baseUrl}/{oldEntity?.Id}";
 
-        //    var response = await _client.PutAsJsonAsync(putUrl, body);
-        //    response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Dictionary<string, string> UpdatedMetadata = new Dictionary<string, string>();
 
-        //    var content = await response.Content.ReadAsStringAsync();
-        //    TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
-        //        content,
-        //        GetOptions()
-        //    );
+            UpdatedMetadata.Add("test", "test");
 
-        //    Assert.True(updatedTicket?.Metadata?.Count == body.Metadata.Count);
-        //}
+            TicketUpdateDto body = new() { Metadata = UpdatedMetadata };
+
+            var response = await _client.PutAsJsonAsync(putUrl, body);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var content = await response.Content.ReadAsStringAsync();
+            TicketEntity? updatedTicket = JsonSerializer.Deserialize<TicketEntity>(
+                content,
+                GetOptions()
+            );
+
+            Assert.True(updatedTicket?.Metadata?.Count == body.Metadata.Count);
+        }
         #endregion
         #endregion
     }

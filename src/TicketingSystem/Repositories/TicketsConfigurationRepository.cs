@@ -10,13 +10,13 @@ namespace TicketingSystem.Repositories
 {
     public class TicketsConfigurationRepository(AppDbContext _dbContext) : ITicketsConfigurationRepository
     {
-        public async Task<TicketConfigurationMapEntity?> GetConfigurationForType(TicketTypeEnum type)
+        public async Task<TicketConfigurationMapEntity> GetConfigurationForType(TicketTypeEnum type)
         {
             return await _dbContext
                 .TicketConfigurationMapEntities
                 .Include(config => config.Metadata)
                 .Where(config => config.TicketType == type)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync() ?? throw new Exception($"Not found metadata configuration for {type}");
         }
 
         public async Task<TicketMetadataFieldEntity?> GetMetadataField(Guid metadataId)
@@ -27,22 +27,47 @@ namespace TicketingSystem.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<TicketMetadataFieldEntity?> GetMetadataFieldByName(string metadataName)
+        {
+            return await _dbContext
+                .TicketMetadataFieldEntities
+                .Where(metadata => metadata.PropertyName == metadataName)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<TicketMetadataFieldEntity?> CreateConfigurationField(TicketTypeEnum type, TicketConfigurationDto body)
         {
             TicketConfigurationMapEntity? Configuration = await GetConfigurationForType(type);
+            TicketMetadataFieldEntity? fieldExists = await GetMetadataFieldByName(body.PropertyName);
 
-            TicketMetadataFieldEntity elementToAdd = new()
+            if (fieldExists is not null)
             {
-                PropertyName = body.PropertyName,
-                PropertyType = body.PropertyType,
-                Configurations = [Configuration]
-            };
+                bool isFieldDefined = fieldExists.Configurations.Contains(Configuration);
 
-            var results = await _dbContext.TicketMetadataFieldEntities.AddAsync(elementToAdd);
+                if (!isFieldDefined)
+                {
+                    fieldExists.Configurations.Add(Configuration);
 
-            await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync();
+                }
 
-            return results.Entity;
+                return fieldExists;
+            }
+            else
+            {
+                TicketMetadataFieldEntity elementToAdd = new()
+                {
+                    PropertyName = body.PropertyName,
+                    PropertyType = body.PropertyType,
+                    Configurations = [Configuration]
+                };
+
+                var results = await _dbContext.TicketMetadataFieldEntities.AddAsync(elementToAdd);
+
+                await _dbContext.SaveChangesAsync();
+
+                return results.Entity;
+            }
         }
 
         public async Task<TicketMetadataFieldEntity?> UpdateConfigurationField(Guid metadataId, TicketConfigurationUpdateDto body)

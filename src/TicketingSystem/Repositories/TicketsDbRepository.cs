@@ -63,29 +63,26 @@ namespace TicketingSystem.Repositories
                 .Include(prop => prop.Tags)
                 .Include(prop => prop.MetadataConfiguration)
                 .ThenInclude(metadataProp => metadataProp.Metadata)
+                .Include(prop => prop.Metadata)
                 .ToListAsync();
         }
 
-        public async Task<TicketEntity> Create(TicketSaveDto body)
+        public async Task<TicketEntity> GetById(Guid ticketId)
+        {
+            var builder = _dbContext.TicketEntities.AsQueryable();
+
+            return await builder
+                .Include(it => it.Tags)
+                .Include(it => it.MetadataConfiguration)
+                .ThenInclude(it => it.Metadata)
+                .Where(it => it.Id == ticketId)
+                .FirstAsync() ?? throw new KeyNotFoundException("Ticket not found");
+        }
+
+        public async Task<TicketEntity> Create(TicketSaveDto body, Guid configurationId)
         {
             TicketEntity ticket = _mapper.Map<TicketEntity>(body);
-            TicketConfigurationMapEntity? configuration = await _ticketsConfigurationRepository.GetConfigurationForType(body.Type);
-
-            if (configuration is not null)
-            {
-                ticket.ConfigurationId = configuration.Id;
-            }
-
-            if (body.Metadata is not null && configuration is not null)
-            {
-                foreach (TicketMetadataFieldEntity key in configuration.Metadata)
-                {
-                    if (ticket.Metadata.Any(m => !m.Key.Equals(key.PropertyName, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        throw new BadHttpRequestException($"Metadata {key.PropertyName} not defined in configuration");
-                    }
-                }
-            }
+            ticket.ConfigurationId = configurationId;
 
             await _dbContext.TicketEntities.AddAsync(ticket);
             await _dbContext.SaveChangesAsync();
@@ -93,16 +90,8 @@ namespace TicketingSystem.Repositories
             return ticket;
         }
 
-        public async Task<TicketEntity> Update(Guid ticketId, TicketUpdateSaveDto body)
+        public async Task<TicketEntity> Update(TicketEntity entity, TicketUpdateSaveDto body)
         {
-            var builder = _dbContext.TicketEntities.AsQueryable();
-            TicketEntity entity = await builder
-                .Include(it => it.Tags)
-                .Include(it => it.MetadataConfiguration)
-                .ThenInclude(it => it.Metadata)
-                .Where(it => it.Id == ticketId)
-                .FirstAsync() ?? throw new KeyNotFoundException("Ticket not found");
-
             if (body.AffectedVersion.IsPresent)
             {
                 if (entity.Type == TicketTypeEnum.Bug)
@@ -134,21 +123,15 @@ namespace TicketingSystem.Repositories
 
             if (body.Tags.Count > 0)
             {
-                await _ticketTagsDbRepository.DeleteTagsRelation(ticketId, entity.Tags);
+                await _ticketTagsDbRepository.DeleteTagsRelation(entity.Id, entity.Tags);
                 entity.Tags = body.Tags;
             }
 
-            if (body.Metadata is not null)
+            TicketConfigurationMapEntity? configuration = await _ticketsConfigurationRepository.GetConfigurationForType(entity.Type);
+
+            if (body.Metadata.Count > 0 && configuration is not null)
             {
                 entity.Metadata = body.Metadata;
-
-                foreach (TicketMetadataFieldEntity key in entity.MetadataConfiguration.Metadata)
-                {
-                    if (entity.Metadata.Any(m => !m.Key.Equals(key.PropertyName, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        throw new BadHttpRequestException($"Metadata {key.PropertyName} not defined in configuration");
-                    }
-                }
             }
 
             bool hasChanges = _dbContext.ChangeTracker.HasChanges();

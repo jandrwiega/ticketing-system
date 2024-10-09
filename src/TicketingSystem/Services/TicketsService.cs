@@ -2,12 +2,15 @@
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Services
 {
     public class TicketsService(
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
-        ITagsRepository _ticketTagsDbRepository
+        ITagsRepository _ticketTagsDbRepository,
+        IMetadataRepository _ticketMetadataDbRepository,
+        ITicketsConfigurationRepository _ticketsConfigurationRepository
         ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
@@ -17,7 +20,10 @@ namespace TicketingSystem.Services
 
         public async Task<TicketEntity> CreateTicket(TicketCreateDto body)
         {
+            TicketConfigurationMapEntity? configuration = await _ticketsConfigurationRepository.GetConfigurationForType(body.Type);
+
             Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            Collection<TicketMetadata> Metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
 
             TicketSaveDto UpdatedBody = new()
             { 
@@ -28,15 +34,20 @@ namespace TicketingSystem.Services
                 Assignee = body.Assignee,
                 Description = body.Description,
                 Status = body.Status,
-                Metadata = body.Metadata
+                Metadata = Metadata
             };
 
-            return await _ticketsDbRepository.Create(UpdatedBody);
+            return await _ticketsDbRepository.Create(UpdatedBody, configuration.Id);
         }
 
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
+            TicketEntity entity = await _ticketsDbRepository.GetById(ticketId);
+
             Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            TicketConfigurationMapEntity configuration = await _ticketsConfigurationRepository.GetConfigurationForType(entity.Type);
+
+            Collection<TicketMetadata> Metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
 
             TicketUpdateSaveDto UpdatedBody = new()
             {
@@ -47,10 +58,10 @@ namespace TicketingSystem.Services
                 Assignee = body.Assignee,
                 Description = body.Description,
                 Status = body.Status,
-                Metadata = body.Metadata
+                Metadata = Metadata
             };
 
-            return await _ticketsDbRepository.Update(ticketId, UpdatedBody);
+            return await _ticketsDbRepository.Update(entity, UpdatedBody);
         }
     }
 }

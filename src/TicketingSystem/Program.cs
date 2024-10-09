@@ -22,6 +22,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>, TicketsDbRepository>();
 builder.Services.AddScoped<ITagsRepository, TicketsTagsDbRepository>();
+builder.Services.AddScoped<IMetadataRepository, TicketsMetadataDbRepository>();
 builder.Services.AddScoped<ITicketsConfigurationService, TicketsConfigurationService>();
 builder.Services.AddScoped<ITicketsConfigurationRepository, TicketsConfigurationRepository>();
 
@@ -37,6 +38,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
 }
 
 app.UseSerilogRequestLogging();

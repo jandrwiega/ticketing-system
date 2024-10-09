@@ -18,7 +18,7 @@ namespace TicketingSystem.Common.Models.Entities
         public string? AffectedVersion { get; set; }
         public Guid[]? RelatedElements { get; set; }
         public Collection<TagEntity> Tags { get; set; } = [];
-        public Dictionary<string, string> Metadata { get; set; } = [];
+        public Collection<TicketMetadata> Metadata { get; set; } = [];
         public required TicketConfigurationMapEntity MetadataConfiguration { get; set; }
         public Guid ConfigurationId { get; set; }
     }
