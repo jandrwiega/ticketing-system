@@ -92,7 +92,7 @@ namespace TicketingSystem.Repositories
 
         public async Task<TicketEntity> Update(TicketEntity entity, TicketUpdateSaveDto body)
         {
-            if (body.AffectedVersion.IsPresent)
+            if (body.AffectedVersion.isPresent)
             {
                 if (entity.Type == TicketTypeEnum.Bug)
                 {
@@ -116,9 +116,9 @@ namespace TicketingSystem.Repositories
                 }
             });
 
-            if (body.RelatedElements.IsPresent)
+            if (body.RelatedElements.isPresent)
             {
-                await UpdateRelatedElements(entity, body.RelatedElements.Value ?? []);
+                await UpdateRelatedElements(entity, body.RelatedElements.value ?? []);
             }
 
             if (body.Tags.Count > 0)
@@ -148,9 +148,9 @@ namespace TicketingSystem.Repositories
 
         private static void UpdateIfModified<T>(Optional<T> item, Action<T?> action)
         {
-            if (item.IsPresent)
+            if (item.isPresent)
             {
-                action(item.Value);
+                action(item.value);
             }
         }
 

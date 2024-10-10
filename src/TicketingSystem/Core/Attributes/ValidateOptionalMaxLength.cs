@@ -16,17 +16,17 @@ namespace TicketingSystem.Core.Attributes
 
             Optional<T> optional = (Optional<T>)value; 
 
-            if (optional.Value == null)
+            if (optional.value == null)
             {
                 return ValidationResult.Success;
             }
 
-            if (optional.Value.GetType().IsArray)
+            if (optional.value.GetType().IsArray)
             {
                 return new ValidationResult($"Use ValidateOptionalMaxLengthArray to validate array length");
             }
 
-            if (optional.Value.ToString()?.Length > _length)
+            if (optional.value.ToString()?.Length > _length)
             {
                 return new ValidationResult($"{validationContext?.DisplayName} must contain no more that {_length} characters");
             }

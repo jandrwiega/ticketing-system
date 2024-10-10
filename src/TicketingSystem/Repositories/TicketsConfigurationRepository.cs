@@ -37,32 +37,32 @@ namespace TicketingSystem.Repositories
 
         public async Task<TicketMetadataFieldEntity?> CreateConfigurationField(TicketTypeEnum type, TicketConfigurationDto body)
         {
-            TicketConfigurationMapEntity? Configuration = await GetConfigurationForType(type);
-            TicketMetadataFieldEntity? fieldExists = await GetMetadataFieldByName(body.PropertyName);
+            TicketConfigurationMapEntity? configuration = await GetConfigurationForType(type);
+            TicketMetadataFieldEntity? configurationMetadata = await GetMetadataFieldByName(body.PropertyName);
 
-            if (fieldExists is not null)
+            if (configurationMetadata is not null)
             {
-                bool isFieldDefined = fieldExists.Configurations.Contains(Configuration);
+                bool isFieldDefined = configurationMetadata.Configurations.Contains(configuration);
 
                 if (!isFieldDefined)
                 {
-                    fieldExists.Configurations.Add(Configuration);
+                    configurationMetadata.Configurations.Add(configuration);
 
                     await _dbContext.SaveChangesAsync();
                 }
 
-                return fieldExists;
+                return configurationMetadata;
             }
             else
             {
-                TicketMetadataFieldEntity elementToAdd = new()
+                TicketMetadataFieldEntity ConfigurationMetadataElement = new()
                 {
                     PropertyName = body.PropertyName,
                     PropertyType = body.PropertyType,
-                    Configurations = [Configuration]
+                    Configurations = [configuration]
                 };
 
-                var results = await _dbContext.TicketMetadataFieldEntities.AddAsync(elementToAdd);
+                var results = await _dbContext.TicketMetadataFieldEntities.AddAsync(ConfigurationMetadataElement);
 
                 await _dbContext.SaveChangesAsync();
 
@@ -103,9 +103,9 @@ namespace TicketingSystem.Repositories
 
         private static void UpdateIfModified<T>(Optional<T> item, Action<T?> action)
         {
-            if (item.IsPresent)
+            if (item.isPresent)
             {
-                action(item.Value);
+                action(item.value);
             }
         }
     }

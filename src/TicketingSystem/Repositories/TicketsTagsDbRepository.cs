@@ -11,35 +11,35 @@ namespace TicketingSystem.Repositories
     {
         public async Task<Collection<TagEntity>> GetOrCreateTags(string[] tags)
         {
-            Collection<TagEntity> Tags = [];
+            Collection<TagEntity> createdTags = [];
             foreach (string tag in tags)
             {
-                TagEntity? isExists = await _dbContext.TagEntities.FirstOrDefaultAsync(it => it.Content == tag);
+                TagEntity? tagEntity = await _dbContext.TagEntities.FirstOrDefaultAsync(it => it.Content == tag);
 
-                if (isExists is not null)
+                if (tagEntity is not null)
                 {
-                    Tags.Add(isExists);
+                    createdTags.Add(tagEntity);
                 }
                 else
                 {
                     EntityEntry<TagEntity> result = await _dbContext.TagEntities.AddAsync(new TagEntity() { Content = tag });
 
-                    Tags.Add(result.Entity);
+                    createdTags.Add(result.Entity);
                 }
             }
 
-            return Tags;
+            return createdTags;
         }
 
         public async Task DeleteTagsRelation(Guid ticketId, Collection<TagEntity> tags)
         {
-            var Set = _dbContext.Set<Dictionary<string, object>>("TagEntityTicketEntity")
+            var set = _dbContext.Set<Dictionary<string, object>>("TagEntityTicketEntity")
                .AsNoTracking()
                .ToList();
 
             foreach (TagEntity tag in tags)
             {
-                Set.Remove(new Dictionary<string, object>
+                set.Remove(new Dictionary<string, object>
                 {
                     { "TicketId", ticketId },
                     { "TagId", tag.Id }

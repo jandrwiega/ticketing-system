@@ -22,19 +22,19 @@ namespace TicketingSystem.Services
         {
             TicketConfigurationMapEntity? configuration = await _ticketsConfigurationRepository.GetConfigurationForType(body.Type);
 
-            Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
-            Collection<TicketMetadata> Metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
+            Collection<TagEntity> tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            Collection<TicketMetadata> metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
 
             TicketSaveDto UpdatedBody = new()
             { 
                 Title = body.Title,
                 Type = body.Type,
-                Tags = Tags,
+                Tags = tags,
                 AffectedVersion = body.AffectedVersion,
                 Assignee = body.Assignee,
                 Description = body.Description,
                 Status = body.Status,
-                Metadata = Metadata
+                Metadata = metadata
             };
 
             return await _ticketsDbRepository.Create(UpdatedBody, configuration.Id);
@@ -44,24 +44,24 @@ namespace TicketingSystem.Services
         {
             TicketEntity entity = await _ticketsDbRepository.GetById(ticketId);
 
-            Collection<TagEntity> Tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
+            Collection<TagEntity> tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
             TicketConfigurationMapEntity configuration = await _ticketsConfigurationRepository.GetConfigurationForType(entity.Type);
 
-            Collection<TicketMetadata> Metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
+            Collection<TicketMetadata> metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
 
-            TicketUpdateSaveDto UpdatedBody = new()
+            TicketUpdateSaveDto updatedBody = new()
             {
                 Title = body.Title,
                 RelatedElements = body.RelatedElements,
-                Tags = Tags,
+                Tags = tags,
                 AffectedVersion = body.AffectedVersion,
                 Assignee = body.Assignee,
                 Description = body.Description,
                 Status = body.Status,
-                Metadata = Metadata
+                Metadata = metadata
             };
 
-            return await _ticketsDbRepository.Update(entity, UpdatedBody);
+            return await _ticketsDbRepository.Update(entity, updatedBody);
         }
     }
 }

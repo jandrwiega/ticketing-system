@@ -7,20 +7,20 @@ namespace TicketingSystem.Core.Converters
     [JsonConverter(typeof(OptionalJsonConverter))]
     public readonly struct Optional<T>(T? Value) : IOptional
     {
-        public bool IsPresent { get; } = true;
-        public T? Value { get; } = Value;
+        public bool isPresent { get; } = true;
+        public T? value { get; } = Value;
 
         public static Optional<T> NotPresent => default;
 
-        bool IOptional.IsPresent => IsPresent;
+        bool IOptional.IsPresent => isPresent;
         object? IOptional.Value => Value;
 
         public static explicit operator T?(Optional<T> Optional)
         {
             var ret = default(T);
-            if (Optional.IsPresent)
+            if (Optional.isPresent)
             {
-                ret = Optional.Value;
+                ret = Optional.value;
             }
 
             return ret;
@@ -28,9 +28,9 @@ namespace TicketingSystem.Core.Converters
 
         public bool TryGetValue(out T? Value)
         {
-            Value = this.Value;
+            Value = this.value;
 
-            return IsPresent;
+            return isPresent;
         }
     }
 
@@ -73,9 +73,9 @@ namespace TicketingSystem.Core.Converters
 
         public override void Write(Utf8JsonWriter writer, Optional<T> value, JsonSerializerOptions options)
         {
-            if (value.IsPresent)
+            if (value.isPresent)
             {
-                JsonSerializer.Serialize(writer, value.Value, options);
+                JsonSerializer.Serialize(writer, value.value, options);
             }
         }
     }

@@ -16,17 +16,17 @@ namespace TicketingSystem.Core.Attributes
 
             Optional<T[]> optional = (Optional<T[]>)value;
 
-            if (optional.Value == null)
+            if (optional.value == null)
             {
                 return ValidationResult.Success;
             }
 
-            if (!optional.Value.GetType().IsArray)
+            if (!optional.value.GetType().IsArray)
             {
                 return new ValidationResult("This attribute allow validation only array types");
             }
 
-            if (optional.Value.Length < _length)
+            if (optional.value.Length < _length)
             {
                 return new ValidationResult($"{validationContext?.DisplayName} requires at least {_length} items");
             }

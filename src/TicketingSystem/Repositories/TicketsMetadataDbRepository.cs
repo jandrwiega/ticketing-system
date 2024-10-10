@@ -15,11 +15,11 @@ namespace TicketingSystem.Repositories
 
             foreach (var metadata in metadataBody)
             {
-                TicketMetadataFieldEntity? MetadataField = configuration.Metadata.Where(it => it.PropertyName.Equals(metadata.Key, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
+                TicketMetadataFieldEntity? metadataField = configuration.Metadata.Where(it => it.PropertyName.Equals(metadata.Key, StringComparison.CurrentCultureIgnoreCase)).FirstOrDefault();
 
-                if (MetadataField is not null)
+                if (metadataField is not null)
                 {
-                    EntityEntry<TicketMetadata> results = await _dbContext.TicketMetadata.AddAsync(new TicketMetadata() { Value = metadata.Value, MetadataId = MetadataField.Id });
+                    EntityEntry<TicketMetadata> results = await _dbContext.TicketMetadata.AddAsync(new TicketMetadata() { Value = metadata.Value, MetadataId = metadataField.Id });
 
                     createdElements.Add(results.Entity);
                 }
