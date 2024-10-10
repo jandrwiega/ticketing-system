@@ -10,6 +10,10 @@ using TicketSystem.IntegrationTests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Sockets;
+using TicketingSystem.IntegrationTests.Data;
+using System.Collections.ObjectModel;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using TicketingSystem.Core.Converters;
 
 namespace TicketingSystem.IntegrationTests
 {
@@ -17,7 +21,6 @@ namespace TicketingSystem.IntegrationTests
     {
         private readonly WebApplicationFactory<Program> _factory;
         private readonly HttpClient _client;
-        private readonly AppDbContext _dbContext;
 
         private readonly string baseUrl = "/v1/tickets-configuration";
         private readonly QueryParamsBuilder _queryParamsBuilder = new();
@@ -36,11 +39,16 @@ namespace TicketingSystem.IntegrationTests
                     }
 
                     services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsConfigturationDb"));
+                    var sp = services.BuildServiceProvider();
+                    using var scope = sp.CreateScope();
+                    var scopedServices = scope.ServiceProvider;
+                    var db = scopedServices.GetRequiredService<AppDbContext>();
+                    db.Database.EnsureCreated();
+
+                    SetupTestData(db).Wait();
                 });
             });
             _client = _factory.CreateClient();
-
-            SetupTestData().Wait();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -64,58 +72,42 @@ namespace TicketingSystem.IntegrationTests
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+        private static JsonSerializerOptions GetOptions()
+        {
+            return new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
+            };
+        }
 
         #region Tests Helpers
-        private async Task SetupTestData()
+        readonly TicketTypeEnum[] typeData = [TicketTypeEnum.Bug, TicketTypeEnum.Improvement, TicketTypeEnum.Epic];
+
+        private async Task SetupTestData(AppDbContext _context)
         {
-            var scope = _factory.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            MetadataConfigurationMocker metadataConfigurationMocker = new(_context);
 
-            //TicketMetadataFieldEntity generateMetadata(string propertyName, TicketMetadataTypeEnum propertyType)
-            //{
-            //    return new TicketMetadataFieldEntity { Id = Guid.NewGuid(), PropertyName = propertyName, PropertyType = propertyType };
-            //}
+            foreach (TicketTypeEnum type in typeData)
+            {
+                TicketMetadataFieldEntity metadata = await metadataConfigurationMocker.GenerateConfigurationMetadataMock(type);
+                await metadataConfigurationMocker.GenerateConfigurationMock(new TicketConfigurationMapEntity() { TicketType = type, Metadata = [metadata] });
+            }
 
-            //context.TicketConfigurationMapEntities.AddRange(
-            //    new TicketConfigurationMapEntity {
-            //        Id = Guid.NewGuid(),
-            //        Metadata = [generateMetadata("Metadata1", TicketMetadataTypeEnum.String)],
-            //        TicketType = TicketTypeEnum.Bug
-            //    },
-            //    new TicketConfigurationMapEntity {
-            //        Id = Guid.NewGuid(),
-            //        Metadata = [
-            //            generateMetadata("Metadata1", TicketMetadataTypeEnum.String),
-            //            generateMetadata("Metadata2", TicketMetadataTypeEnum.String)
-            //        ],
-            //        TicketType = TicketTypeEnum.Improvement
-            //    },
-            //    new TicketConfigurationMapEntity {
-            //        Id = Guid.NewGuid(),
-            //        Metadata = [
-            //            generateMetadata("Metadata1", TicketMetadataTypeEnum.String),
-            //            generateMetadata("Metadata2", TicketMetadataTypeEnum.String),
-            //            generateMetadata("Metadata3", TicketMetadataTypeEnum.String)
-            //        ],
-            //        TicketType = TicketTypeEnum.Epic
-            //    }
-            //);
+            await _context.SaveChangesAsync();
 
-            //await context.SaveChangesAsync();
+            TicketConfigurationMapEntity[] configurations = [.. _context.TicketConfigurationMapEntities];
 
-            TicketConfigurationMapEntity[] configurations = context.TicketConfigurationMapEntities.ToArray();
-
-            Console.WriteLine(configurations);
             if (configurations.Length > 0)
             {
                 foreach (TicketConfigurationMapEntity configuration in configurations)
                 {
-                    context.TicketMetadataFieldEntities.AddRange(
-                        new TicketMetadataFieldEntity() { PropertyName = "Metadata", Configurations = [configuration] }
+                    _context.TicketMetadataFieldEntities.Add(
+                        new TicketMetadataFieldEntity() { PropertyName = $"Metadata-{configuration.TicketType}", Configurations = [configuration] }
                     );
                 }
 
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
         }
 
@@ -123,34 +115,124 @@ namespace TicketingSystem.IntegrationTests
 
         #region Get Requests
         #region Get configurations
-        //public static IEnumerable<object[]> BugConfigurationTest()
-        //{
-        //    yield return new object[] { TicketTypeEnum.Bug };
-        //}
-        //public static IEnumerable<object[]> ImprovementConfigurationTest()
-        //{
-        //    yield return new object[] { TicketTypeEnum.Improvement };
-        //}
-        //public static IEnumerable<object[]> EpicConfigurationTest()
-        //{
-        //    yield return new object[] { TicketTypeEnum.Epic };
-        //}
+        public static IEnumerable<object[]> BugConfigurationTest()
+        {
+            yield return new object[] { TicketTypeEnum.Bug };
+        }
+        public static IEnumerable<object[]> ImprovementConfigurationTest()
+        {
+            yield return new object[] { TicketTypeEnum.Improvement };
+        }
+        public static IEnumerable<object[]> EpicConfigurationTest()
+        {
+            yield return new object[] { TicketTypeEnum.Epic };
+        }
 
-        //[Theory]
-        //[MemberData(nameof(BugConfigurationTest))]
-        //[MemberData(nameof(ImprovementConfigurationTest))]
-        //[MemberData(nameof(EpicConfigurationTest))]
-        //public async Task GetConfiguration_ForValidSetup_RetunsConfigurationWithValidMetadataSet(TicketTypeEnum type)
-        //{
-        //    string url = $"{baseUrl}/{type}";
-        //    var response = await _client.GetAsync(url);
+        [Theory]
+        [MemberData(nameof(BugConfigurationTest))]
+        [MemberData(nameof(ImprovementConfigurationTest))]
+        [MemberData(nameof(EpicConfigurationTest))]
+        public async Task GetConfiguration_ForValidSetup_RetunsConfigurationWithValidMetadataSet(TicketTypeEnum type)
+        {
+            string url = $"{baseUrl}/{type}";
+            var response = await _client.GetAsync(url);
 
-        //    string content = await response.Content.ReadAsStringAsync();
-        //    TicketConfigurationMapEntity? apiResponse = JsonSerializer.Deserialize<TicketConfigurationMapEntity>(content);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        #endregion
+        #endregion
 
-        //    Console.Write(apiResponse);
-        //    response.StatusCode.Should().Be(HttpStatusCode.OK);
-        //}
+        #region Create Requests
+        #region Try create existsing metadata
+        [Fact]
+        public async Task TryCreateMetadata_ForExistingMetadata_ReturnsExistsField()
+        {
+            TicketTypeEnum type = TicketTypeEnum.Bug;
+            string url = $"{baseUrl}/{type}";
+            TicketConfigurationDto dto = new() { PropertyName = $"metadata-{type}" };
+            var response = await _client.PostAsJsonAsync(url, dto);
+
+            string content = await response.Content.ReadAsStringAsync();
+            TicketConfigurationMapEntity? apiResponse = JsonSerializer.Deserialize<TicketConfigurationMapEntity>(content);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            Assert.True(apiResponse?.TicketType == type);
+        }
+        #endregion
+
+        #region Create new field
+        [Fact]
+        public async Task TryCreateMetadata_ForNonExistingMetadata_ReturnsValidField()
+        {
+            TicketTypeEnum type = TicketTypeEnum.Bug;
+            string url = $"{baseUrl}/{type}";
+            TicketConfigurationDto dto = new() { PropertyName = $"metadata-{type}-2" };
+            var response = await _client.PostAsJsonAsync(url, dto);
+
+            string content = await response.Content.ReadAsStringAsync();
+            TicketMetadataFieldEntity? apiResponse = JsonSerializer.Deserialize<TicketMetadataFieldEntity>(content, GetOptions());
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            Assert.True(apiResponse?.PropertyName == $"metadata-{type}-2");
+        }
+        #endregion
+        #endregion
+
+        #region Update Requests
+        #region Try update not existsing metadata
+        [Fact]
+        public async Task TryUpdateMetadata_OnNotExistingMetadata_ToThrowException()
+        {
+            string putUrl = $"{baseUrl}/{Guid.NewGuid()}";
+            TicketConfigurationUpdateDto dto = new() { PropertyName = new Optional<string>("Updated-Metadata") };
+            var response = await _client.PutAsJsonAsync(putUrl, dto);
+
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+        #endregion
+
+        #region Try update not existsing metadata
+        [Fact]
+        public async Task TryUpdateMetadata_OnExistingMetadata_RetunsUpdatedMetadataField()
+        {
+            TicketTypeEnum type = TicketTypeEnum.Bug;
+            string getUrl = $"{baseUrl}/{type}";
+
+            var getResponse = await _client.GetAsync(getUrl);
+            string getContent = await getResponse.Content.ReadAsStringAsync();
+            TicketConfigurationMapEntity? getApiResponse = JsonSerializer.Deserialize<TicketConfigurationMapEntity>(getContent, GetOptions());
+
+            string putUrl = $"{baseUrl}/{getApiResponse?.Metadata.First().Id}";
+            TicketConfigurationUpdateDto dto = new() { PropertyName = new Optional<string>("Updated-Metadata"), PropertyType = new Optional<TicketMetadataTypeEnum>(TicketMetadataTypeEnum.String) };
+            var putResponse = await _client.PutAsJsonAsync(putUrl, dto);
+            string putContent = await putResponse.Content.ReadAsStringAsync();
+            TicketMetadataFieldEntity? putApiResponse = JsonSerializer.Deserialize<TicketMetadataFieldEntity>(putContent, GetOptions());
+
+            putResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.True(putApiResponse?.PropertyName == "Updated-Metadata");
+        }
+        #endregion
+        #endregion
+
+        #region Delete Requests
+        #region Delete valid metadata
+        [Fact]
+        public async Task TryDeleteMetadata_OnValidMetadata_MetadataShouldBeDeleted()
+        {
+            TicketTypeEnum type = TicketTypeEnum.Bug;
+            string getUrl = $"{baseUrl}/{type}";
+
+            var getResponse = await _client.GetAsync(getUrl);
+            string getContent = await getResponse.Content.ReadAsStringAsync();
+            TicketConfigurationMapEntity? getApiResponse = JsonSerializer.Deserialize<TicketConfigurationMapEntity>(getContent, GetOptions());
+
+            string deleteUrl = $"{baseUrl}/{getApiResponse?.Metadata.First().Id}";
+            var putResponse = await _client.DeleteAsync(deleteUrl);
+
+            putResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
         #endregion
         #endregion
     }

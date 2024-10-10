@@ -40,11 +40,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    dbContext.Database.Migrate();
+//}
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();

@@ -8,6 +8,7 @@ namespace TicketingSystem.Common.Models.Entities
     {
         public Guid Id { get; set; }
         public TicketTypeEnum TicketType { get; set; }
+        [JsonPropertyName("metadata")]
         public Collection<TicketMetadataFieldEntity> Metadata { get; set; } = [];
         [JsonIgnore]
         public Collection<TicketEntity> Tickets { get; set; } = [];

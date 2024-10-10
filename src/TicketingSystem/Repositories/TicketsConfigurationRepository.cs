@@ -100,6 +100,7 @@ namespace TicketingSystem.Repositories
                 await _dbContext.SaveChangesAsync();
             }
         }
+
         private static void UpdateIfModified<T>(Optional<T> item, Action<T?> action)
         {
             if (item.IsPresent)

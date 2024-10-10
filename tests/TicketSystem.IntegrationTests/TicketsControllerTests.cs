@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Common.Models.Dtos;
 using System.Collections.ObjectModel;
+using TicketingSystem.IntegrationTests.Data;
 
 namespace TicketingSystem.IntegrationTests
 {
@@ -39,11 +40,18 @@ namespace TicketingSystem.IntegrationTests
                     }
 
                     services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDb"));
+                    var sp = services.BuildServiceProvider();
+                    using (var scope = sp.CreateScope())
+                    {
+                        var scopedServices = scope.ServiceProvider;
+                        var db = scopedServices.GetRequiredService<AppDbContext>();
+                        db.Database.EnsureCreated();
+
+                        SetupTestData(db).Wait();
+                    }
                 });
             });
             _client = _factory.CreateClient();
-
-            SetupTestData().Wait();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -69,17 +77,44 @@ namespace TicketingSystem.IntegrationTests
         }
 
         #region Tests Helpers
-        readonly TicketCreateDto[] testData = [
-            new TicketCreateDto() { Title = "Test-Data-Bug", Type = TicketTypeEnum.Bug },
-            new TicketCreateDto() { Title = "Test-Data-Improvement", Type = TicketTypeEnum.Improvement },
-            new TicketCreateDto() { Title = "Test-Data-Epic", Type = TicketTypeEnum.Epic },
-        ];
-
-        private async Task SetupTestData()
+        private class SetupData
         {
-            foreach (var dto in testData)
+            public TicketTypeEnum Type { get; set; }
+            public TicketStatusEnum Status {  get; set; }
+        }
+
+        readonly SetupData[] data = [
+            new SetupData() { Type = TicketTypeEnum.Bug, Status = TicketStatusEnum.Open },
+            new SetupData() { Type = TicketTypeEnum.Bug, Status = TicketStatusEnum.Resolved },
+            new SetupData() { Type = TicketTypeEnum.Bug, Status = TicketStatusEnum.In_Progress },
+            new SetupData() { Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.Open },
+            new SetupData() { Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.Resolved },
+            new SetupData() { Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.In_Progress },
+            new SetupData() { Type = TicketTypeEnum.Epic, Status = TicketStatusEnum.Open },
+            new SetupData() { Type = TicketTypeEnum.Epic, Status = TicketStatusEnum.Resolved },
+            new SetupData() { Type = TicketTypeEnum.Epic, Status = TicketStatusEnum.In_Progress }
+        ];
+        readonly TicketTypeEnum[] typeData = [TicketTypeEnum.Bug, TicketTypeEnum.Improvement, TicketTypeEnum.Epic];
+
+        private async Task SetupTestData(AppDbContext _context)
+        {
+            MetadataConfigurationMocker metadataConfigurationMocker = new MetadataConfigurationMocker(_context);
+            TicketMocker ticketMocker = new TicketMocker(_context);
+
+            Collection<TicketConfigurationMapEntity> Configurations = [];
+
+            foreach (TicketTypeEnum type in typeData)
             {
-                await _client.PostAsJsonAsync(baseUrl, dto);
+                TicketMetadataFieldEntity metadata = await metadataConfigurationMocker.GenerateConfigurationMetadataMock(type);
+                TicketConfigurationMapEntity configuration = await metadataConfigurationMocker.GenerateConfigurationMock(new TicketConfigurationMapEntity() { TicketType = type, Metadata = [metadata] });
+
+                Configurations.Add(configuration);
+            }
+
+            foreach (SetupData it in data)
+            {
+                TicketConfigurationMapEntity? MetadataConfiguration = Configurations.Where(config => config.TicketType == it.Type).FirstOrDefault();
+                TicketEntity ticket = await ticketMocker.GenerateTicketMock(new TicketEntity() { Title = $"Test-Data-{it.Type}", Type = it.Type, MetadataConfiguration = MetadataConfiguration });
             }
         }
 
@@ -452,7 +487,7 @@ namespace TicketingSystem.IntegrationTests
 
             Dictionary<string, string> UpdatedMetadata = new Dictionary<string, string>();
 
-            UpdatedMetadata.Add("test", "test");
+            UpdatedMetadata.Add("metadata-epic", "test");
 
             TicketUpdateDto body = new() { Metadata = UpdatedMetadata };
 
