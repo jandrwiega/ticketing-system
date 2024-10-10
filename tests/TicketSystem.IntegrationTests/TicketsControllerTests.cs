@@ -41,14 +41,12 @@ namespace TicketingSystem.IntegrationTests
 
                     services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TicketsDb"));
                     var sp = services.BuildServiceProvider();
-                    using (var scope = sp.CreateScope())
-                    {
-                        var scopedServices = scope.ServiceProvider;
-                        var db = scopedServices.GetRequiredService<AppDbContext>();
-                        db.Database.EnsureCreated();
+                    using var scope = sp.CreateScope();
+                    var scopedServices = scope.ServiceProvider;
+                    var db = scopedServices.GetRequiredService<AppDbContext>();
+                    db.Database.EnsureCreated();
 
-                        SetupTestData(db).Wait();
-                    }
+                    SetupTestData(db).Wait();
                 });
             });
             _client = _factory.CreateClient();
@@ -98,8 +96,8 @@ namespace TicketingSystem.IntegrationTests
 
         private async Task SetupTestData(AppDbContext _context)
         {
-            MetadataConfigurationMocker metadataConfigurationMocker = new MetadataConfigurationMocker(_context);
-            TicketMocker ticketMocker = new TicketMocker(_context);
+            MetadataConfigurationMocker metadataConfigurationMocker = new(_context);
+            TicketMocker ticketMocker = new(_context);
 
             Collection<TicketConfigurationMapEntity> Configurations = [];
 
@@ -114,7 +112,10 @@ namespace TicketingSystem.IntegrationTests
             foreach (SetupData it in data)
             {
                 TicketConfigurationMapEntity? MetadataConfiguration = Configurations.Where(config => config.TicketType == it.Type).FirstOrDefault();
-                TicketEntity ticket = await ticketMocker.GenerateTicketMock(new TicketEntity() { Title = $"Test-Data-{it.Type}", Type = it.Type, MetadataConfiguration = MetadataConfiguration });
+                if (MetadataConfiguration is not null)
+                {
+                    TicketEntity ticket = await ticketMocker.GenerateTicketMock(new TicketEntity() { Title = $"Test-Data-{it.Type}", Type = it.Type, MetadataConfiguration = MetadataConfiguration });
+                }
             }
         }
 
@@ -485,9 +486,10 @@ namespace TicketingSystem.IntegrationTests
 
             var putUrl = $"{baseUrl}/{oldEntity?.Id}";
 
-            Dictionary<string, string> UpdatedMetadata = new Dictionary<string, string>();
-
-            UpdatedMetadata.Add("metadata-epic", "test");
+            Dictionary<string, string> UpdatedMetadata = new()
+            {
+                { "metadata-epic", "test" }
+            };
 
             TicketUpdateDto body = new() { Metadata = UpdatedMetadata };
 

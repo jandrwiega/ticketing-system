@@ -40,13 +40,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+using (var scope = app.Services.CreateScope())
+{
+    var env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-//    dbContext.Database.Migrate();
-//}
+    DbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    if (dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+    {
+        dbContext.Database.Migrate();
+    };
+}
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
