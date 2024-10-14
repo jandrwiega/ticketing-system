@@ -64,6 +64,7 @@ namespace TicketingSystem.Repositories
                 .Include(prop => prop.MetadataConfiguration)
                 .ThenInclude(metadataProp => metadataProp.Metadata)
                 .Include(prop => prop.Metadata)
+                .Include(prop => prop.Dependencies)
                 .ToListAsync();
         }
 
@@ -75,6 +76,7 @@ namespace TicketingSystem.Repositories
                 .Include(it => it.Tags)
                 .Include(it => it.MetadataConfiguration)
                 .ThenInclude(it => it.Metadata)
+                .Include(it => it.Dependencies) 
                 .Where(it => it.Id == ticketId)
                 .FirstAsync() ?? throw new KeyNotFoundException("Ticket not found");
         }
@@ -83,8 +85,19 @@ namespace TicketingSystem.Repositories
         {
             TicketEntity ticket = _mapper.Map<TicketEntity>(body);
             ticket.ConfigurationId = configurationId;
+            ticket.Dependencies = body.Dependencies;
 
             await _dbContext.TicketEntities.AddAsync(ticket);
+
+            if (body.Dependencies.Count > 0)
+            {
+                foreach (TicketDependenciesEntity dependency in ticket.Dependencies)
+                {
+                    dependency.SourceTicketId = ticket.Id;
+                    dependency.SourceTicket = ticket;
+                }
+            }
+
             await _dbContext.SaveChangesAsync();
 
             return ticket;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Newtonsoft.Json;
 using Serilog;
@@ -15,6 +16,7 @@ namespace TicketingSystem.Core.Database
         public DbSet<TicketMetadata> TicketMetadata { get; set; }
         public DbSet<TicketConfigurationMapEntity> TicketConfigurationMapEntities { get; set; }
         public DbSet<TicketMetadataFieldEntity> TicketMetadataFieldEntities { get; set; }
+        public DbSet<TicketDependenciesEntity> TicketDependenciesEntities { get; set; }
 
         public Logger logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -32,10 +34,12 @@ namespace TicketingSystem.Core.Database
                 modelBuilder.Entity<TicketMetadata>().ToTable("metadata");
                 modelBuilder.Entity<TicketConfigurationMapEntity>().ToTable("tickets_configuration");
                 modelBuilder.Entity<TicketMetadataFieldEntity>().ToTable("tickets_configuration_metadata");
+                modelBuilder.Entity<TicketDependenciesEntity>().ToTable("tickets_dependencies");
 
                 modelBuilder.HasPostgresEnum<TicketTypeEnum>("TicketTypeEnum");
                 modelBuilder.HasPostgresEnum<TicketStatusEnum>("TicketStatusEnum");
                 modelBuilder.HasPostgresEnum<TicketMetadataTypeEnum>("TicketMetadataTypeEnum");
+                modelBuilder.HasPostgresEnum<TicketDependenciesEnum>("TicketDependenciesEnum");
 
                 modelBuilder.Entity<TicketEntity>()
                     .HasMany(s => s.Tags)
@@ -78,6 +82,21 @@ namespace TicketingSystem.Core.Database
                         j => j.HasOne<TicketMetadataFieldEntity>().WithMany().HasForeignKey("MetadataId"),
                         j => j.HasOne<TicketConfigurationMapEntity>().WithMany().HasForeignKey("ConfigurationId")
                     );
+
+                modelBuilder.Entity<TicketDependenciesEntity>()
+                   .HasOne(d => d.SourceTicket)
+                   .WithOne()
+                   .HasForeignKey<TicketDependenciesEntity>(d => d.SourceTicketId);
+
+                modelBuilder.Entity<TicketDependenciesEntity>()
+                   .HasOne(d => d.TargetTicket)
+                   .WithOne()
+                   .HasForeignKey<TicketDependenciesEntity>(d => d.TargetTicketId);
+
+                modelBuilder.Entity<TicketEntity>()
+                    .HasMany(t => t.Dependencies)
+                    .WithOne(d => d.SourceTicket)
+                    .HasForeignKey(t =>  t.SourceTicketId);
 
                 modelBuilder.Entity<TicketConfigurationMapEntity>().HasData(
                     new TicketConfigurationMapEntity() { TicketType = TicketTypeEnum.Bug },

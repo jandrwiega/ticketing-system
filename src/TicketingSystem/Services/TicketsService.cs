@@ -2,15 +2,19 @@
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Core.Database;
+using TicketingSystem.Core.Validators;
 using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Services
 {
     public class TicketsService(
+        AppDbContext _dbContext,
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
         ITagsRepository _ticketTagsDbRepository,
         IMetadataRepository _ticketMetadataDbRepository,
-        ITicketsConfigurationRepository _ticketsConfigurationRepository
+        ITicketsConfigurationRepository _ticketsConfigurationRepository,
+        ITicketsDependenciesRepository _ticketsDependenciesRepository
         ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
@@ -24,6 +28,7 @@ namespace TicketingSystem.Services
 
             Collection<TagEntity> tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
             Collection<TicketMetadata> metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
+            Collection<TicketDependenciesEntity> dependencies = await _ticketsDependenciesRepository.CreateDependecies(body.Dependencies ?? []);
 
             TicketSaveDto UpdatedBody = new()
             { 
@@ -34,7 +39,8 @@ namespace TicketingSystem.Services
                 Assignee = body.Assignee,
                 Description = body.Description,
                 Status = body.Status,
-                Metadata = metadata
+                Metadata = metadata,
+                Dependencies = dependencies
             };
 
             return await _ticketsDbRepository.Create(UpdatedBody, configuration.Id);
@@ -44,9 +50,15 @@ namespace TicketingSystem.Services
         {
             TicketEntity entity = await _ticketsDbRepository.GetById(ticketId);
 
+            DependeciesValidator validator = new(_dbContext);
+
+            bool validationResult = await validator.ValidateDependecies(entity);
+
+            if (validationResult == false) throw new Exception("Please resolve ticket dependencies first");
+
             Collection<TagEntity> tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
             TicketConfigurationMapEntity configuration = await _ticketsConfigurationRepository.GetConfigurationForType(entity.Type);
-
+            
             Collection<TicketMetadata> metadata = await _ticketMetadataDbRepository.CreateMetadata(body.Metadata ?? [], configuration);
 
             TicketUpdateSaveDto updatedBody = new()

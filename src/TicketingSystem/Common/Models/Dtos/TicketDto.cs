@@ -33,12 +33,14 @@ namespace TicketingSystem.Common.Models.Dtos
     {
         public string[]? Tags { get; set; }
         public Dictionary<string, string>? Metadata { get; set; }
+        public Collection<TicketDependencyDto>? Dependencies { get; set; }
     }
 
     public class TicketSaveDto : TicketBaseDto
     {
         public Collection<TagEntity> Tags { get; set; } = [];
         public Collection<TicketMetadata> Metadata { get; set; } = [];
+        public Collection<TicketDependenciesEntity> Dependencies { get; set; } = [];
     }
 
     public class TicketUpdateBaseDto

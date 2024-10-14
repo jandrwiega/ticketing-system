@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using TicketingSystem.Common.Enums;
 
 namespace TicketingSystem.Common.Models.Entities
@@ -21,5 +22,6 @@ namespace TicketingSystem.Common.Models.Entities
         public Collection<TicketMetadata> Metadata { get; set; } = [];
         public required TicketConfigurationMapEntity MetadataConfiguration { get; set; }
         public Guid ConfigurationId { get; set; }
+        public Collection<TicketDependenciesEntity> Dependencies { get; set; } = [];
     }
 }
