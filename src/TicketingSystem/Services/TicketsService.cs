@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
@@ -9,7 +10,6 @@ using TicketingSystem.Repositories;
 namespace TicketingSystem.Services
 {
     public class TicketsService(
-        AppDbContext _dbContext,
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
         ITagsRepository _ticketTagsDbRepository,
         IMetadataRepository _ticketMetadataDbRepository,
@@ -50,11 +50,16 @@ namespace TicketingSystem.Services
         {
             TicketEntity entity = await _ticketsDbRepository.GetById(ticketId);
 
-            DependeciesValidator validator = new(_dbContext);
+            foreach (TicketDependenciesEntity dependency in entity.Dependencies)
+            {
+                TicketEntity targetEntity = await _ticketsDbRepository.GetById(dependency.TargetTicketId);
+                IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator(dependency.DependencyType);
 
-            bool validationResult = await validator.ValidateDependecies(entity);
-
-            if (validationResult == false) throw new Exception("Please resolve ticket dependencies first");
+                if (validator.ShouldValidate(body))
+                {
+                    validator.Validate(targetEntity);
+                }
+            }
 
             Collection<TagEntity> tags = await _ticketTagsDbRepository.GetOrCreateTags(body.Tags ?? []);
             TicketConfigurationMapEntity configuration = await _ticketsConfigurationRepository.GetConfigurationForType(entity.Type);
