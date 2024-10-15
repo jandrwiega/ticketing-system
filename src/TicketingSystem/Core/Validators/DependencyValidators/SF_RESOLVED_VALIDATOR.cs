@@ -7,6 +7,11 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
 {
     public class SF_RESOLVED_VALIDATOR : IDependencyValidator<TicketUpdateDto>
     {
+        public bool CanCreate()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool ShouldValidate(TicketUpdateDto body)
         {
             return body.Status.isPresent;

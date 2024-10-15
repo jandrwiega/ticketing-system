@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Extensions.DependencyModel;
+using System.Collections.ObjectModel;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
@@ -53,7 +54,7 @@ namespace TicketingSystem.Services
             foreach (TicketDependenciesEntity dependency in entity.Dependencies)
             {
                 TicketEntity targetEntity = await _ticketsDbRepository.GetById(dependency.TargetTicketId);
-                IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator(dependency.DependencyType);
+                IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
 
                 if (validator.ShouldValidate(body))
                 {

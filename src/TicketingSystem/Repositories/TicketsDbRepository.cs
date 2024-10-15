@@ -7,6 +7,7 @@ using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Core.Converters;
 using TicketingSystem.Core.Database;
+using TicketingSystem.Core.Validators;
 
 namespace TicketingSystem.Repositories
 {
@@ -93,8 +94,17 @@ namespace TicketingSystem.Repositories
             {
                 foreach (TicketDependenciesEntity dependency in ticket.Dependencies)
                 {
-                    dependency.SourceTicketId = ticket.Id;
-                    dependency.SourceTicket = ticket;
+                    IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+
+                    if (validator.CanCreate())
+                    {
+                        dependency.SourceTicketId = ticket.Id;
+                        dependency.SourceTicket = ticket;
+                    }
+                    else
+                    {
+                        throw new Exception("Found dependency error");
+                    }
                 }
             }
 
