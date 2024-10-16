@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
@@ -33,6 +34,11 @@ namespace TicketingSystem.Repositories
                 TargetTicketId = body.TargetTicketId
             };
 
+            if (body.SourceTicketId is not null)
+            {
+                element.SourceTicketId = body.SourceTicketId ?? Guid.Empty;
+            }
+
             var results = await _dbContext.TicketDependenciesEntities.AddAsync(element);
 
             return results.Entity;
@@ -40,9 +46,14 @@ namespace TicketingSystem.Repositories
 
         public async Task DeleteDependency(Guid dependencyId)
         {
-            _dbContext.Remove(dependencyId);
+            TicketDependenciesEntity? EntityToRemove = await _dbContext.TicketDependenciesEntities.Where(dependency => dependency.Id == dependencyId).FirstOrDefaultAsync();
 
-            await _dbContext.SaveChangesAsync();
+            if (EntityToRemove is not null)
+            {
+                _dbContext.Remove(EntityToRemove);
+
+                await _dbContext.SaveChangesAsync();
+            }
         }
     }
 }

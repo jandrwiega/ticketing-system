@@ -1,16 +1,14 @@
-﻿using Microsoft.Extensions.DependencyModel;
-using System.Collections.ObjectModel;
-using TicketingSystem.Common.Enums;
+﻿using System.Collections.ObjectModel;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Core.Database;
 using TicketingSystem.Core.Validators;
-using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Services
 {
     public class TicketsService(
+        AppDbContext _dbContext,
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
         ITagsRepository _ticketTagsDbRepository,
         IMetadataRepository _ticketMetadataDbRepository,
@@ -50,6 +48,42 @@ namespace TicketingSystem.Services
         public async Task<TicketEntity> UpdateTicket(Guid ticketId, TicketUpdateDto body)
         {
             TicketEntity entity = await _ticketsDbRepository.GetById(ticketId);
+
+            if (body.Dependencies?.Count > 0)
+            {
+                Collection<TicketDependencyDto> dependeciesWithSource = new(body.Dependencies.Select(dependency => {
+                    dependency.SourceTicketId = ticketId;
+
+                    return dependency;
+                }).ToList());
+
+                Collection<TicketDependenciesEntity> ticketDependencies = await _ticketsDependenciesRepository.CreateDependecies(dependeciesWithSource ?? []);
+
+                foreach (TicketDependenciesEntity dependency in ticketDependencies)
+                {
+                    IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+
+                    try
+                    {
+                        validator.CanCreate(ticketId, _dbContext, dependency);
+                    }
+                    catch
+                    {
+                        foreach (TicketDependenciesEntity revertDependencies in ticketDependencies)
+                        {
+                            await _ticketsDependenciesRepository.DeleteDependency(revertDependencies.Id);
+                        }
+                        throw;
+                    }
+                }
+
+                foreach (TicketDependenciesEntity oldDependency in entity.Dependencies)
+                {
+                    await _ticketsDependenciesRepository.DeleteDependency(oldDependency.Id);
+                }
+
+                entity.Dependencies = ticketDependencies;
+            }
 
             foreach (TicketDependenciesEntity dependency in entity.Dependencies)
             {

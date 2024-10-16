@@ -14,7 +14,8 @@ namespace TicketingSystem.Repositories
     public class TicketsDbRepository(
         AppDbContext _dbContext,
         ITagsRepository _ticketTagsDbRepository,
-        ITicketsConfigurationRepository _ticketsConfigurationRepository
+        ITicketsConfigurationRepository _ticketsConfigurationRepository,
+        ITicketsDependenciesRepository _ticketsDependenciesRepository
         ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
@@ -95,16 +96,22 @@ namespace TicketingSystem.Repositories
                 foreach (TicketDependenciesEntity dependency in ticket.Dependencies)
                 {
                     IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+                    
+                    try
+                    {
+                        validator.CanCreate(ticket.Id, _dbContext, dependency);
+                    }
+                    catch
+                    {
+                        foreach (TicketDependenciesEntity revertDependencies in ticket.Dependencies)
+                        {
+                            await _ticketsDependenciesRepository.DeleteDependency(revertDependencies.Id);
+                        }
+                        throw;
+                    }
 
-                    if (validator.CanCreate())
-                    {
-                        dependency.SourceTicketId = ticket.Id;
-                        dependency.SourceTicket = ticket;
-                    }
-                    else
-                    {
-                        throw new Exception("Found dependency error");
-                    }
+                    dependency.SourceTicketId = ticket.Id;
+                    dependency.SourceTicket = ticket;
                 }
             }
 

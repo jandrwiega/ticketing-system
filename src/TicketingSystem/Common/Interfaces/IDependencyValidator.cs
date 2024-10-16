@@ -1,4 +1,5 @@
 ﻿using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Common.Interfaces
 {
@@ -6,6 +7,6 @@ namespace TicketingSystem.Common.Interfaces
     {
         bool ShouldValidate(UpdateDto body);
         bool Validate(TicketEntity targetTicket);
-        bool CanCreate();
+        void CanCreate(Guid sourceId, AppDbContext _dbContext, TicketDependenciesEntity dependency);
     }
 }
