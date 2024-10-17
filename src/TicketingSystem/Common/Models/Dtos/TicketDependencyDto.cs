@@ -14,4 +14,11 @@ namespace TicketingSystem.Common.Models.Dtos
         [Required]
         public required Guid TargetTicketId { get; set; }
     }
+
+    public class GetTicketDependencyDto
+    {
+        public TicketDependenciesEnum? DependencyType { get; set; }
+        public Guid? TargetTicketId { get; set; }
+        public Guid? SourceTicketId { get; set; }
+    }
 }

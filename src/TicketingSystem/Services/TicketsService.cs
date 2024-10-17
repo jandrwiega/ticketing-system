@@ -8,12 +8,12 @@ using TicketingSystem.Core.Validators;
 namespace TicketingSystem.Services
 {
     public class TicketsService(
-        AppDbContext _dbContext,
         IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto> _ticketsDbRepository,
         ITagsRepository _ticketTagsDbRepository,
         IMetadataRepository _ticketMetadataDbRepository,
         ITicketsConfigurationRepository _ticketsConfigurationRepository,
-        ITicketsDependenciesRepository _ticketsDependenciesRepository
+        ITicketsDependenciesRepository _ticketsDependenciesRepository,
+        DependeciesValidatorFactory _dependenciesValidatorFactory
         ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)
@@ -61,11 +61,11 @@ namespace TicketingSystem.Services
 
                 foreach (TicketDependenciesEntity dependency in ticketDependencies)
                 {
-                    IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+                    IDependencyValidator<TicketUpdateDto> validator = _dependenciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
 
                     try
                     {
-                        validator.CanCreate(ticketId, _dbContext, dependency);
+                        validator.CanCreate(ticketId, dependency);
                     }
                     catch
                     {
@@ -88,7 +88,7 @@ namespace TicketingSystem.Services
             foreach (TicketDependenciesEntity dependency in entity.Dependencies)
             {
                 TicketEntity targetEntity = await _ticketsDbRepository.GetById(dependency.TargetTicketId);
-                IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+                IDependencyValidator<TicketUpdateDto> validator = _dependenciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
 
                 if (validator.ShouldValidate(body))
                 {

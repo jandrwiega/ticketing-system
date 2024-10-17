@@ -6,6 +6,7 @@ namespace TicketingSystem.Common.Interfaces
 {
     public interface ITicketsDependenciesRepository
     {
+        Task<Collection<TicketDependenciesEntity>> GetDependencies(GetTicketDependencyDto options);
         Task<Collection<TicketDependenciesEntity>> CreateDependecies(Collection<TicketDependencyDto> elements);
         Task DeleteDependency(Guid dependencyId);
     }

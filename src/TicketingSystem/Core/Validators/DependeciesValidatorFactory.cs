@@ -4,14 +4,14 @@ using TicketingSystem.Core.Validators.DependencyValidators;
 
 namespace TicketingSystem.Core.Validators
 {
-    public class DependeciesValidatorFactory
+    public class DependeciesValidatorFactory(ITicketsDependenciesRepository _ticketsDependenciesRepository)
     {
-        public static IDependencyValidator<T> GetValidator<T>(TicketDependenciesEnum dependencyType)
+        public IDependencyValidator<T> GetValidator<T>(TicketDependenciesEnum dependencyType)
         {
             return dependencyType switch
             {
-                TicketDependenciesEnum.SF_IN_PROGRESS => (IDependencyValidator<T>)new SF_IN_PROGRESS_VALIDATOR(),
-                TicketDependenciesEnum.SF_RESOLVED => (IDependencyValidator<T>)new SF_RESOLVED_VALIDATOR(),
+                TicketDependenciesEnum.SF_IN_PROGRESS => (IDependencyValidator<T>)new StartFinishInProgressTicket(_ticketsDependenciesRepository),
+                TicketDependenciesEnum.SF_RESOLVED => (IDependencyValidator<T>)new StartFinishResolvedTicket(_ticketsDependenciesRepository),
                 _ => throw new Exception("Validator not implemented yet"),
             };
         }

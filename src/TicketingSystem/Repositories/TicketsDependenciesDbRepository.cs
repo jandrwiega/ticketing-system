@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyModel;
 using System.Collections.ObjectModel;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
@@ -9,6 +10,27 @@ namespace TicketingSystem.Repositories
 {
     public class TicketsDependenciesDbRepository(AppDbContext _dbContext) : ITicketsDependenciesRepository
     {
+        public async Task<Collection<TicketDependenciesEntity>> GetDependencies(GetTicketDependencyDto options)
+        {
+            var builder = _dbContext.TicketDependenciesEntities.AsQueryable();
+
+            if (options.DependencyType is not null)
+            {
+                builder.Where(dependency => dependency.DependencyType == options.DependencyType);
+            }
+
+            if (options.TargetTicketId is not null)
+            {
+                builder.Where(dependency => dependency.TargetTicketId == options.TargetTicketId);
+            }
+
+            if (options.SourceTicketId is not null)
+            {
+                builder.Where(dependency => dependency.SourceTicketId == options.SourceTicketId);
+            }
+
+            return new Collection<TicketDependenciesEntity>(await builder.ToArrayAsync());
+        }
 
         public async Task<Collection<TicketDependenciesEntity>> CreateDependecies(Collection<TicketDependencyDto> elements)
         {

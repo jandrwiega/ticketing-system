@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using TicketingSystem.Core.Attributes;
-using TicketingSystem.Common.Models;
 using TicketingSystem.Core.Converters;
 
 namespace TicketingSystem.UnitTests

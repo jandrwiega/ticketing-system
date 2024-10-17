@@ -1,27 +1,28 @@
-﻿using TicketingSystem.Common.Enums;
+﻿using System.Collections.ObjectModel;
+using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Core.Database;
+using TicketingSystem.Repositories;
 
 namespace TicketingSystem.Core.Validators.DependencyValidators
 {
-    public class SF_RESOLVED_VALIDATOR : IDependencyValidator<TicketUpdateDto>
+    public class StartFinishResolvedTicket(ITicketsDependenciesRepository _ticketsDependenciesRepository) : IDependencyValidator<TicketUpdateDto>
     {
-        public void CanCreate(Guid sourceId, AppDbContext _dbContext, TicketDependenciesEntity dependency)
+        public async Task CanCreate(Guid sourceId, TicketDependenciesEntity dependency)
         {
-            TicketDependenciesEntity[] targetTicketDependencies = [.. _dbContext.TicketDependenciesEntities.Where(it => it.DependencyType == dependency.DependencyType && it.SourceTicketId == dependency.TargetTicketId)];
+            Collection<TicketDependenciesEntity> targetTicketDependencies = await _ticketsDependenciesRepository.GetDependencies(new GetTicketDependencyDto { DependencyType = dependency.DependencyType, SourceTicketId = dependency.TargetTicketId });
             
             if (targetTicketDependencies.Any(targetDependency => targetDependency.TargetTicketId == sourceId))
             {
-                throw new Exception("Found dependency error");
+                throw new InvalidOperationException("A circular dependency was detect");
             }
 
-            if (targetTicketDependencies.Length > 0)
+            if (targetTicketDependencies.Count > 0)
             {
                 foreach (TicketDependenciesEntity targetDependency in targetTicketDependencies)
                 {
-                    CanCreate(sourceId, _dbContext, targetDependency);
+                    await CanCreate(sourceId, targetDependency);
                 }
             }
         }

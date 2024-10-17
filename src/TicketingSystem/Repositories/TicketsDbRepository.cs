@@ -15,7 +15,8 @@ namespace TicketingSystem.Repositories
         AppDbContext _dbContext,
         ITagsRepository _ticketTagsDbRepository,
         ITicketsConfigurationRepository _ticketsConfigurationRepository,
-        ITicketsDependenciesRepository _ticketsDependenciesRepository
+        ITicketsDependenciesRepository _ticketsDependenciesRepository,
+        DependeciesValidatorFactory _dependenciesValidatorFactory
         ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config
@@ -95,11 +96,11 @@ namespace TicketingSystem.Repositories
             {
                 foreach (TicketDependenciesEntity dependency in ticket.Dependencies)
                 {
-                    IDependencyValidator<TicketUpdateDto> validator = DependeciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
+                    IDependencyValidator<TicketUpdateDto> validator = _dependenciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
                     
                     try
                     {
-                        validator.CanCreate(ticket.Id, _dbContext, dependency);
+                        validator.CanCreate(ticket.Id, dependency);
                     }
                     catch
                     {
