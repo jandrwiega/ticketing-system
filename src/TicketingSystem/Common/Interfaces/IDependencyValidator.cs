@@ -3,9 +3,9 @@ using TicketingSystem.Core.Database;
 
 namespace TicketingSystem.Common.Interfaces
 {
-    public interface IDependencyValidator<UpdateDto>
+    public interface IDependencyValidator<T>
     {
-        bool ShouldValidate(UpdateDto body);
+        bool ShouldValidate(T body);
         bool Validate(TicketEntity targetTicket);
         void CanCreate(Guid sourceId, AppDbContext _dbContext, TicketDependenciesEntity dependency);
     }

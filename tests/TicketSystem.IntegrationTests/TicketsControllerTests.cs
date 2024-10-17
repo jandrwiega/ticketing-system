@@ -26,6 +26,10 @@ namespace TicketingSystem.IntegrationTests
         private readonly string baseUrl = "/v1/tickets";
         private readonly QueryParamsBuilder _queryParamsBuilder = new();
         private bool disposedValue;
+        public class TestsOptions
+        {
+            public bool shouldCheckDependency = false;
+        }
 
         public TicketsControllerTests(WebApplicationFactory<Program> factory)
         {
@@ -233,48 +237,63 @@ namespace TicketingSystem.IntegrationTests
         {
             yield return new object[] {
                 new TicketCreateDto { Title = "Integration-Tests-Bug", Type = TicketTypeEnum.Bug },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateInProgressBugBody()
         {
             yield return new object[] {
                 new TicketCreateDto { Title = "Integration-Tests-Bug", Type = TicketTypeEnum.Bug, Status = TicketStatusEnum.In_Progress },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateResolvedBugBody()
         {
             yield return new object[] {
                 new TicketCreateDto { Title = "Integration-Tests-Bug", Type = TicketTypeEnum.Bug, Status = TicketStatusEnum.Resolved },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateImprovementBody()
         {
             yield return new object[] {
-                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement }
+                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateInProgressImprovementBody()
         {
             yield return new object[] {
-                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.In_Progress }
+                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.In_Progress },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateResolvedImprovementBody()
         {
             yield return new object[] {
-                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.Resolved }
+                new TicketCreateDto { Title = "Integration-Tests-Improvement", Type = TicketTypeEnum.Improvement, Status = TicketStatusEnum.Resolved },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateEpicBody()
         {
             yield return new object[] {
-                new TicketCreateDto { Title = "Integration-Tests-Epic", Type = TicketTypeEnum.Epic }
+                new TicketCreateDto { Title = "Integration-Tests-Epic", Type = TicketTypeEnum.Epic },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> CreateInProgressEpicBody()
         {
             yield return new object[] {
-                new TicketCreateDto { Title = "Integration-Tests-Epic", Type = TicketTypeEnum.Epic, Status = TicketStatusEnum.In_Progress }
+                new TicketCreateDto { Title = "Integration-Tests-Epic", Type = TicketTypeEnum.Epic, Status = TicketStatusEnum.In_Progress },
+                new TestsOptions {}
+            };
+        }
+        public static IEnumerable<object[]> CreateTicketWithDependency()
+        {
+            yield return new object[] {
+                new TicketCreateDto { Title = "Ticket-With-Dependencies", Type = TicketTypeEnum.Epic },
+                new TestsOptions { shouldCheckDependency = true }
             };
         }
 
@@ -287,8 +306,17 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(CreateResolvedImprovementBody))]
         [MemberData(nameof(CreateEpicBody))]
         [MemberData(nameof(CreateInProgressEpicBody))]
-        public async Task CreateTickets_ForBody_ReturnsValidTicket(TicketCreateDto dto)
+        [MemberData(nameof(CreateTicketWithDependency))]
+        public async Task CreateTickets_ForBody_ReturnsValidTicket(TicketCreateDto dto, TestsOptions testOptions)
         {
+            if (testOptions.shouldCheckDependency)
+            {
+                dto.Dependencies =
+                [
+                    new TicketDependencyDto() { DependencyType = TicketDependenciesEnum.SF_RESOLVED, TargetTicketId = Guid.NewGuid() }
+                ];
+            }
+
             var response = await _client.PostAsJsonAsync(baseUrl, dto);
 
             string content = await response.Content.ReadAsStringAsync();
@@ -297,10 +325,17 @@ namespace TicketingSystem.IntegrationTests
                 GetOptions()
             );
 
-            apiResponse.Should().BeEquivalentTo(dto, options => options
-                .Including(p => p.Type)
-                .Including(p => p.Title)
-            );
+            if (testOptions.shouldCheckDependency)
+            {
+                Assert.Single(apiResponse?.Dependencies ?? []);
+            }
+            else
+            {
+                apiResponse.Should().BeEquivalentTo(dto, options => options
+                   .Including(p => p.Type)
+                   .Including(p => p.Title)
+                );
+            }
         }
         #endregion
         #endregion
@@ -363,35 +398,48 @@ namespace TicketingSystem.IntegrationTests
         {
             yield return new object[] {
                 new TicketFiltersDto() { Type = "Bug" },
-                new TicketUpdateDto { AffectedVersion = new Optional<Version>(new Version(1, 9)) }
+                new TicketUpdateDto { AffectedVersion = new Optional<Version>(new Version(1, 9)) },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> TryUpdateTitle()
         {
             yield return new object[] {
                 new TicketFiltersDto() { Type = "Bug" },
-                new TicketUpdateDto { Title = new Optional<string>("Updated title") }
+                new TicketUpdateDto { Title = new Optional<string>("Updated title") },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> TryUpdateDescription()
         {
             yield return new object[] {
                 new TicketFiltersDto() { Type = "Bug" },
-                new TicketUpdateDto { Description = new Optional<string>("Updated description") }
+                new TicketUpdateDto { Description = new Optional<string>("Updated description") },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> TryUpdateAssignee()
         {
             yield return new object[] {
                 new TicketFiltersDto() { Type = "Bug" },
-                new TicketUpdateDto { Assignee = new Optional<Guid>(Guid.NewGuid()) }
+                new TicketUpdateDto { Assignee = new Optional<Guid>(Guid.NewGuid()) },
+                new TestsOptions {}
             };
         }
         public static IEnumerable<object[]> TryUpdateStatusFromOpenToInProgress()
         {
             yield return new object[] {
                 new TicketFiltersDto() { Type = "Improvement" },
-                new TicketUpdateDto { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.In_Progress) }
+                new TicketUpdateDto { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.In_Progress) },
+                new TestsOptions {}
+            };
+        }
+        public static IEnumerable<object[]> TryUpdateTicketDependency()
+        {
+            yield return new object[] {
+                new TicketFiltersDto() { Type = "Bug" },
+                new TicketUpdateDto { Dependencies = [new TicketDependencyDto { DependencyType = TicketDependenciesEnum.SF_RESOLVED, TargetTicketId = Guid.NewGuid() }] },
+                new TestsOptions { shouldCheckDependency = true }
             };
         }
 
@@ -401,13 +449,25 @@ namespace TicketingSystem.IntegrationTests
         [MemberData(nameof(TryUpdateDescription))]
         [MemberData(nameof(TryUpdateAssignee))]
         [MemberData(nameof(TryUpdateStatusFromOpenToInProgress))]
-        public async Task UpdateTicket_ForValidParameters_ExpectSuccess(TicketFiltersDto ticketIdDto, TicketUpdateDto dto)
+        [MemberData(nameof(TryUpdateTicketDependency))]
+        public async Task UpdateTicket_ForValidParameters_ExpectSuccess(TicketFiltersDto ticketIdDto, TicketUpdateDto dto, TestsOptions options)
         {
             TicketEntity? ticket = await GetTicket(ticketIdDto);
             var putUrl = $"{baseUrl}/{ticket?.Id}";
 
             var response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            if (options.shouldCheckDependency)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                TicketEntity? apiResponse = JsonSerializer.Deserialize<TicketEntity>(
+                    content,
+                    GetOptions()
+                );
+
+                Assert.Single(apiResponse?.Dependencies ?? []);
+            }
         }
         #endregion
 
