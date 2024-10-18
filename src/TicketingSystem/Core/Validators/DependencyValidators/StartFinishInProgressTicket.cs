@@ -23,7 +23,7 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
             {
                 foreach (TicketDependenciesEntity targetDependency in targetTicketDependencies)
                 {
-                    CanCreate(sourceId, targetDependency);
+                    await CanCreate(sourceId, targetDependency);
                 }
             }
         }

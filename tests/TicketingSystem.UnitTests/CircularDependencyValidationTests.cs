@@ -30,14 +30,14 @@ namespace TicketingSystem.UnitTests
             public Guid TargetId;
         }
 
-        private Collection<TicketDependenciesEntity> GenerateMockedDependencies()
+        private static Collection<TicketDependenciesEntity> GenerateMockedDependencies()
         {
             return [];
         }
 
-        private Collection<TicketDependenciesEntity> GenerateMockedDependencies(MockDependencyOptions[] options)
+        private static Collection<TicketDependenciesEntity> GenerateMockedDependencies(MockDependencyOptions[] options)
         {
-            Collection<TicketDependenciesEntity> dependencies = new();
+            Collection<TicketDependenciesEntity> dependencies = [];
 
             foreach (MockDependencyOptions option in options)
             {
