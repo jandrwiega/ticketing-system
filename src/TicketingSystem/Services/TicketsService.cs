@@ -65,7 +65,7 @@ namespace TicketingSystem.Services
 
                     try
                     {
-                        validator.CanCreate(ticketId, dependency);
+                        await validator.CanCreate(ticketId, dependency);
                     }
                     catch
                     {
