@@ -9,7 +9,7 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
 {
     public class StartFinishResolvedTicket(ITicketsDependenciesRepository _ticketsDependenciesRepository) : IDependencyValidator<TicketUpdateDto>
     {
-        public async Task CanCreate(Guid sourceId, TicketDependenciesEntity dependency)
+        public async Task CanCreateAsync(Guid sourceId, TicketDependenciesEntity dependency)
         {
             Collection<TicketDependenciesEntity> targetTicketDependencies = await _ticketsDependenciesRepository.GetDependencies(new GetTicketDependencyDto { DependencyType = dependency.DependencyType, SourceTicketId = dependency.TargetTicketId });
             
@@ -22,7 +22,7 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
             {
                 foreach (TicketDependenciesEntity targetDependency in targetTicketDependencies)
                 {
-                    await CanCreate(sourceId, targetDependency);
+                    await CanCreateAsync(sourceId, targetDependency);
                 }
             }
         }

@@ -1,10 +1,5 @@
 ﻿using Moq;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
@@ -60,27 +55,17 @@ namespace TicketingSystem.UnitTests
         [Fact]
         public async Task CheckValidation_For2Elements_ShouldThrowCircularDependenciesException()
         {
-            _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == baseTicketId)))
-                .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { SourceId = baseTicketId, TargetId = ticket1Id }
-                ]));
-
             _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == ticket1Id)))
                 .ReturnsAsync(GenerateMockedDependencies([
                     new MockDependencyOptions { SourceId = ticket1Id, TargetId = baseTicketId }
                 ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreate(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
         public async Task CheckValidation_For3Elements_ShouldThrowCircularDependenciesException()
         {
-            _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == baseTicketId)))
-                .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { SourceId = baseTicketId, TargetId = ticket1Id }
-                ]));
-
             _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == ticket1Id)))
                 .ReturnsAsync(GenerateMockedDependencies([
                     new MockDependencyOptions { SourceId = ticket1Id, TargetId = ticket2Id }
@@ -91,17 +76,12 @@ namespace TicketingSystem.UnitTests
                    new MockDependencyOptions { SourceId = ticket2Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreate(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
         public async Task CheckValidation_For4Elements_ShouldThrowCircularDependenciesException()
         {
-            _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == baseTicketId)))
-                .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { SourceId = baseTicketId, TargetId = ticket1Id }
-                ]));
-
             _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == ticket1Id)))
                 .ReturnsAsync(GenerateMockedDependencies([
                     new MockDependencyOptions { SourceId = ticket1Id, TargetId = ticket2Id }
@@ -117,17 +97,12 @@ namespace TicketingSystem.UnitTests
                    new MockDependencyOptions { SourceId = ticket3Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreate(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
         public async Task CheckValidation_ForNestedElements_ShouldThrowCircularDependenciesException()
         {
-            _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == baseTicketId)))
-                .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { SourceId = baseTicketId, TargetId = ticket1Id }
-                ]));
-
             _ticketsDependenciesRepository.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.DependencyType == TicketDependenciesEnum.SF_RESOLVED && dto.SourceTicketId == ticket1Id)))
                 .ReturnsAsync(GenerateMockedDependencies([
                     new MockDependencyOptions { SourceId = ticket1Id, TargetId = ticket2Id },
@@ -152,7 +127,7 @@ namespace TicketingSystem.UnitTests
                    new MockDependencyOptions { SourceId = ticket5Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreate(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
     }
 }

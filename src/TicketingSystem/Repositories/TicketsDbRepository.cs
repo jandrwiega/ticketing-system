@@ -100,7 +100,7 @@ namespace TicketingSystem.Repositories
                     
                     try
                     {
-                        await validator.CanCreate(ticket.Id, dependency);
+                        await validator.CanCreateAsync(ticket.Id, dependency);
                     }
                     catch
                     {

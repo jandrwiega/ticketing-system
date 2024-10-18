@@ -7,6 +7,6 @@ namespace TicketingSystem.Common.Interfaces
     {
         bool ShouldValidate(T body);
         bool Validate(TicketEntity targetTicket);
-        Task CanCreate(Guid sourceId, TicketDependenciesEntity dependency);
+        Task CanCreateAsync(Guid sourceId, TicketDependenciesEntity dependency);
     }
 }
