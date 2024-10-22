@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.ObjectModel;
-using System.Net.Sockets;
-using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Core.Database;
+using TicketingSystem.Core.Interfaces;
+using TicketingSystem.Database.Entities;
+using TicketingSystem.Database;
 
 namespace TicketingSystem.Repositories
 {

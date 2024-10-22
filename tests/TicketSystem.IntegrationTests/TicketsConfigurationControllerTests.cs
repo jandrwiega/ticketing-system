@@ -2,18 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using TicketingSystem.Common.Enums;
-using TicketingSystem.Common.Models.Dtos;
-using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Core.Database;
-using TicketSystem.IntegrationTests.Helpers;
+using TicketingSystem.Database.Enums;
+using TicketingSystem.Database.Entities;
+using TicketingSystem.Database;
+using TicketingSystem.IntegrationTests.Helpers;
 using FluentAssertions;
 using System.Net;
-using System.Net.Sockets;
 using TicketingSystem.IntegrationTests.Data;
-using System.Collections.ObjectModel;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TicketingSystem.Core.Converters;
+using TicketingSystem.Core.Dtos;
 
 namespace TicketingSystem.IntegrationTests
 {

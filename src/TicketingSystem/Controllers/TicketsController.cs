@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models.Dtos;
-using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Core.Dtos;
+using TicketingSystem.Core.Interfaces;
+using TicketingSystem.Database.Entities;
 
 namespace TicketingSystem.Controllers
 {

@@ -1,14 +1,14 @@
 using TicketingSystem.Repositories;
 using TicketingSystem.Services;
-using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Core.Database;
+using TicketingSystem.Core.Interfaces;
+using TicketingSystem.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Common.Models.Dtos;
+using TicketingSystem.Database.Entities;
 using TicketingSystem.Core.Validators;
+using TicketingSystem.Core.Dtos;
 
 var builder = WebApplication.CreateBuilder(args);
 

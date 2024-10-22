@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using TicketingSystem.Common.Enums;
-using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Core.Database;
+﻿using TicketingSystem.Database.Enums;
+using TicketingSystem.Database.Entities;
+using TicketingSystem.Database;
 
 namespace TicketingSystem.IntegrationTests.Data
 {

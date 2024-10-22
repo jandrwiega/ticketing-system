@@ -1,9 +1,9 @@
 ﻿using Moq;
 using System.Collections.ObjectModel;
-using TicketingSystem.Common.Enums;
-using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models.Dtos;
-using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Core.Dtos;
+using TicketingSystem.Database.Enums;
+using TicketingSystem.Core.Interfaces;
+using TicketingSystem.Database.Entities;
 using TicketingSystem.Core.Validators;
 using TicketingSystem.Core.Validators.DependencyValidators;
 

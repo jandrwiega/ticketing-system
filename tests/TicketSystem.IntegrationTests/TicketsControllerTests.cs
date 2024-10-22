@@ -1,20 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
-using TicketingSystem;
 using FluentAssertions;
-using TicketingSystem.Common.Enums;
-using TicketSystem.IntegrationTests.Helpers;
+using TicketingSystem.Database.Enums;
+using TicketingSystem.IntegrationTests.Helpers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TicketingSystem.Core.Converters;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using TicketingSystem.Core.Database;
-using FluentAssertions.Common;
-using Microsoft.Extensions.DependencyInjection;
-using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Common.Models.Dtos;
+using TicketingSystem.Database;
+using TicketingSystem.Database.Entities;
 using System.Collections.ObjectModel;
 using TicketingSystem.IntegrationTests.Data;
+using TicketingSystem.Core.Dtos;
 
 namespace TicketingSystem.IntegrationTests
 {

@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using TicketingSystem.Common.Enums;
-using TicketingSystem.Common.Interfaces;
-using TicketingSystem.Common.Models.Dtos;
-using TicketingSystem.Common.Models.Entities;
+using TicketingSystem.Database.Enums;
+using TicketingSystem.Core.Interfaces;
+using TicketingSystem.Database.Entities;
 using TicketingSystem.Core.Converters;
-using TicketingSystem.Core.Database;
+using TicketingSystem.Database;
 using TicketingSystem.Core.Validators;
+using TicketingSystem.Core.Dtos;
 
 namespace TicketingSystem.Repositories
 {

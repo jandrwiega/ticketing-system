@@ -1,6 +1,6 @@
 ﻿using System.Web;
 
-namespace TicketSystem.IntegrationTests.Helpers
+namespace TicketingSystem.IntegrationTests.Helpers
 {
     public class QueryParamsBuilder
     {

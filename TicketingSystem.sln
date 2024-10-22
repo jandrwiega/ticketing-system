@@ -4,10 +4,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketingSystem", "src\TicketingSystem\TicketingSystem.csproj", "{53ADDE2E-AA12-4D45-8102-07820BAD88D8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{050DE88E-314B-4BDD-A233-ABD1569305ED} = {050DE88E-314B-4BDD-A233-ABD1569305ED}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketingSystem.UnitTests", "tests\TicketingSystem.UnitTests\TicketingSystem.UnitTests.csproj", "{B0519927-9E34-4047-B6AC-356436774295}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketingSystem.IntegrationTests", "tests\TicketSystem.IntegrationTests\TicketingSystem.IntegrationTests.csproj", "{5FB93510-0940-43FE-8866-664E62A7D0A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicketingSystem.Core", "src\TicketingSystem.Core\TicketingSystem.Core.csproj", "{050DE88E-314B-4BDD-A233-ABD1569305ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketingSystem.Database", "src\TicketingSystem.Database\TicketingSystem.Database.csproj", "{F2BE3B5F-3639-4700-AEF0-89552E3B78F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +34,14 @@ Global
 		{5FB93510-0940-43FE-8866-664E62A7D0A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FB93510-0940-43FE-8866-664E62A7D0A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FB93510-0940-43FE-8866-664E62A7D0A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{050DE88E-314B-4BDD-A233-ABD1569305ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{050DE88E-314B-4BDD-A233-ABD1569305ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{050DE88E-314B-4BDD-A233-ABD1569305ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{050DE88E-314B-4BDD-A233-ABD1569305ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2BE3B5F-3639-4700-AEF0-89552E3B78F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2BE3B5F-3639-4700-AEF0-89552E3B78F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2BE3B5F-3639-4700-AEF0-89552E3B78F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2BE3B5F-3639-4700-AEF0-89552E3B78F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
