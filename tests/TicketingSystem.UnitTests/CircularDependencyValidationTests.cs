@@ -11,16 +11,10 @@ namespace TicketingSystem.UnitTests
 {
     public class CircularDependencyValidationTests
     {
-        #region Services - mocks
         private readonly Mock<ITicketsDependenciesRepository> _ticketsDependenciesRepositoryMock = new();
         
         private readonly Mock<IDependenciesValidationFactory> _ticketDependenciesFactoryMock = new();
         private readonly IDependencyValidator<TicketUpdateDto> _startFinishResolvedTicket;
-        #endregion
-
-        #region Setup Services
-        private readonly ITicketsService _ticketsService;
-        #endregion
 
         public CircularDependencyValidationTests()
         {

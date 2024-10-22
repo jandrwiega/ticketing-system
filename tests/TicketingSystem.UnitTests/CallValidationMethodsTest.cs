@@ -1,16 +1,9 @@
 ﻿using Moq;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TicketingSystem.Common.Enums;
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
 using TicketingSystem.Core.Converters;
-using TicketingSystem.Core.Validators.DependencyValidators;
 using TicketingSystem.Core.Validators;
 using TicketingSystem.Services;
 
@@ -39,8 +32,6 @@ namespace TicketingSystem.UnitTests
             #region Setup Services
             _ticketDependenciesFactoryMock.Setup(repo => repo.GetValidator<TicketUpdateDto>(It.IsAny<TicketDependenciesEnum>())).Returns(_startFinishResolvedTicketMock.Object);
             _startFinishResolvedTicketMock.Setup(repo => repo.ShouldValidate(It.IsAny<TicketUpdateDto>())).Returns(true);
-            //_startFinishResolvedTicketMock.Setup(repo => repo.CanCreateAsync(It.IsAny<TicketEntity>())).ReturnsAsync(true);
-            //_startFinishResolvedTicketMock.Setup(repo => repo.Validate(It.IsAny<Guid>(), It.IsAny<TicketDependenciesEntity>()));
 
             _ticketsService = new TicketsService(_ticketsDbRepositoryMock.Object, _ticketsTagsDbRepositoryMock.Object, _ticketsMetadataDbRepositoryMock.Object, _ticketsConfigurationRepositoryMock.Object, _ticketsDependenciesRepositoryMock.Object, _ticketDependenciesFactoryMock.Object);
             #endregion
