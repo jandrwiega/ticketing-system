@@ -32,9 +32,13 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
             return body.Status.isPresent;
         }
 
-        public bool Validate(TicketEntity targetEntity)
+        public void Validate(TicketEntity targetEntity)
         {
-            return targetEntity.Status == TicketStatusEnum.Resolved;
+            bool validationResults = targetEntity.Status == TicketStatusEnum.Resolved;
+
+            if (!validationResults) {
+                throw new InvalidOperationException("Some of dependencies conditions doesn't meet");
+            }
         }
     }
 }

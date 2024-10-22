@@ -2,7 +2,6 @@
 using TicketingSystem.Common.Interfaces;
 using TicketingSystem.Common.Models.Dtos;
 using TicketingSystem.Common.Models.Entities;
-using TicketingSystem.Core.Database;
 using TicketingSystem.Core.Validators;
 
 namespace TicketingSystem.Services
@@ -13,7 +12,7 @@ namespace TicketingSystem.Services
         IMetadataRepository _ticketMetadataDbRepository,
         ITicketsConfigurationRepository _ticketsConfigurationRepository,
         ITicketsDependenciesRepository _ticketsDependenciesRepository,
-        DependeciesValidatorFactory _dependenciesValidatorFactory
+        IDependenciesValidationFactory _dependenciesValidatorFactory
         ) : ITicketsService
     {
         public async Task<IEnumerable<TicketEntity>> GetTickets(TicketFiltersDto filters)

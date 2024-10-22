@@ -27,7 +27,7 @@ builder.Services.AddScoped<IMetadataRepository, TicketsMetadataDbRepository>();
 builder.Services.AddScoped<ITicketsConfigurationService, TicketsConfigurationService>();
 builder.Services.AddScoped<ITicketsConfigurationRepository, TicketsConfigurationRepository>();
 builder.Services.AddScoped<ITicketsDependenciesRepository, TicketsDependenciesDbRepository>();
-builder.Services.AddScoped<DependeciesValidatorFactory, DependeciesValidatorFactory>();
+builder.Services.AddScoped<IDependenciesValidationFactory, DependeciesValidatorFactory>();
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DB")));
 

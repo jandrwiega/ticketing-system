@@ -11,12 +11,12 @@ namespace TicketingSystem.Core.Database
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public DbSet<TicketEntity> TicketEntities { get; set; }
-        public DbSet<TagEntity> TagEntities { get; set; }
-        public DbSet<TicketMetadata> TicketMetadata { get; set; }
-        public DbSet<TicketConfigurationMapEntity> TicketConfigurationMapEntities { get; set; }
-        public DbSet<TicketMetadataFieldEntity> TicketMetadataFieldEntities { get; set; }
-        public DbSet<TicketDependenciesEntity> TicketDependenciesEntities { get; set; }
+        public virtual DbSet<TicketEntity> TicketEntities { get; set; }
+        public virtual DbSet<TagEntity> TagEntities { get; set; }
+        public virtual DbSet<TicketMetadata> TicketMetadata { get; set; }
+        public virtual DbSet<TicketConfigurationMapEntity> TicketConfigurationMapEntities { get; set; }
+        public virtual DbSet<TicketMetadataFieldEntity> TicketMetadataFieldEntities { get; set; }
+        public virtual DbSet<TicketDependenciesEntity> TicketDependenciesEntities { get; set; }
 
         public Logger logger = new LoggerConfiguration()
             .MinimumLevel.Debug()

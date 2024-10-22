@@ -16,7 +16,7 @@ namespace TicketingSystem.Repositories
         ITagsRepository _ticketTagsDbRepository,
         ITicketsConfigurationRepository _ticketsConfigurationRepository,
         ITicketsDependenciesRepository _ticketsDependenciesRepository,
-        DependeciesValidatorFactory _dependenciesValidatorFactory
+        IDependenciesValidationFactory _dependenciesValidatorFactory
         ) : IRepository<TicketEntity, TicketSaveDto, TicketUpdateSaveDto>
     {
         private readonly Mapper _mapper = new(new MapperConfiguration(config => config

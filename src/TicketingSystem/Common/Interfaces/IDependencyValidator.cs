@@ -6,7 +6,7 @@ namespace TicketingSystem.Common.Interfaces
     public interface IDependencyValidator<T>
     {
         bool ShouldValidate(T body);
-        bool Validate(TicketEntity targetTicket);
+        void Validate(TicketEntity targetTicket);
         Task CanCreateAsync(Guid sourceId, TicketDependenciesEntity dependency);
     }
 }
