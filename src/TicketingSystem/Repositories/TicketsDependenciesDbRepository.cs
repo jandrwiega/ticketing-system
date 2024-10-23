@@ -9,23 +9,28 @@ namespace TicketingSystem.Repositories
 {
     public class TicketsDependenciesDbRepository(AppDbContext _dbContext) : ITicketsDependenciesRepository
     {
-        public async Task<Collection<TicketDependenciesEntity>> GetDependencies(GetTicketDependencyDto options)
+        public async Task<Collection<TicketDependenciesEntity>> GetDependencies(GetTicketDependencyDto options, Guid? sourceDependencyId)
         {
             var builder = _dbContext.TicketDependenciesEntities.AsQueryable();
 
             if (options.DependencyType is not null)
             {
-                builder.Where(dependency => dependency.DependencyType == options.DependencyType);
+                builder = builder.Where(dependency => dependency.DependencyType == options.DependencyType);
             }
 
             if (options.TargetTicketId is not null)
             {
-                builder.Where(dependency => dependency.TargetTicketId == options.TargetTicketId);
+                builder = builder.Where(dependency => dependency.TargetTicketId == options.TargetTicketId);
             }
 
             if (options.SourceTicketId is not null)
             {
-                builder.Where(dependency => dependency.SourceTicketId == options.SourceTicketId);
+                builder = builder.Where(dependency => dependency.SourceTicketId == options.SourceTicketId);
+            }
+
+            if (sourceDependencyId is not null)
+            {
+                builder = builder.Where(dependency => dependency.Id != sourceDependencyId);
             }
 
             return new Collection<TicketDependenciesEntity>(await builder.ToArrayAsync());

@@ -9,7 +9,7 @@ namespace TicketingSystem.Core.Validators
         IDependencyValidator<T> GetValidator<T>(TicketDependenciesEnum dependencyType);
     }
 
-    public class DependeciesValidatorFactory(ITicketsDependenciesRepository _ticketsDependenciesRepository): IDependenciesValidationFactory
+    public class DependeciesValidatorFactory(ITicketsDependenciesRepository _ticketsDependenciesRepository) : IDependenciesValidationFactory
     {
         public IDependencyValidator<T> GetValidator<T>(TicketDependenciesEnum dependencyType)
         {

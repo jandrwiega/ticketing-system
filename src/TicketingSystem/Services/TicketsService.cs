@@ -86,7 +86,21 @@ namespace TicketingSystem.Services
 
             foreach (TicketDependenciesEntity dependency in entity.Dependencies)
             {
-                TicketEntity targetEntity = await _ticketsDbRepository.GetById(dependency.TargetTicketId);
+                var x = await GetTickets(new TicketFiltersDto() { });
+
+                Console.WriteLine(x);
+
+                TicketEntity targetEntity = new() { Title = "dsads", MetadataConfiguration = new TicketConfigurationMapEntity() { } };
+                try
+                {
+                    targetEntity = await _ticketsDbRepository.GetById(dependency.TargetTicketId);
+
+                    Console.WriteLine(targetEntity);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
                 IDependencyValidator<TicketUpdateDto> validator = _dependenciesValidatorFactory.GetValidator<TicketUpdateDto>(dependency.DependencyType);
 
                 if (validator.ShouldValidate(body))

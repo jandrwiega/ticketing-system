@@ -1,11 +1,16 @@
-﻿using TicketingSystem.Database.Entities;
+﻿using TicketingSystem.Core.Validators.DependencyValidators;
+using TicketingSystem.Database.Entities;
 
 namespace TicketingSystem.Core.Interfaces
 {
-    public interface IDependencyValidator<T>
+    public interface IDependencyValidatorBase<T>
     {
         bool ShouldValidate(T body);
-        void Validate(TicketEntity targetTicket);
         Task CanCreateAsync(Guid sourceId, TicketDependenciesEntity dependency);
+    }
+
+    public interface IDependencyValidator<T> : IDependencyValidatorBase<T>
+    {
+        void Validate(TicketEntity targetTicket);
     }
 }
