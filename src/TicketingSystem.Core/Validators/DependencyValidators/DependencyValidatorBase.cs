@@ -27,7 +27,7 @@ namespace TicketingSystem.Core.Validators.DependencyValidators
 
         public bool ShouldValidate(TicketUpdateDto body)
         {
-            return body.Status.isPresent;
+            return body.Status.IsPresent;
         }
     }
 }
