@@ -14,14 +14,19 @@ namespace TicketingSystem.UnitTests
         private readonly Mock<ITicketsDependenciesRepository> _ticketsDependenciesRepositoryMock = new();
         
         private readonly Mock<IDependenciesValidationFactory> _ticketDependenciesFactoryMock = new();
-        private readonly IDependencyValidator<TicketUpdateDto> _startFinishResolvedTicket;
-        private readonly IDependencyValidator<TicketUpdateDto> _startFinishInProgressTicket;
+        private readonly IDependencyValidator<TicketUpdateDto> _startToStartValidtor;
+        private readonly IDependencyValidator<TicketUpdateDto> _startToFinishValidtor;
+        private readonly IDependencyValidator<TicketUpdateDto> _finishToStartValidtor;
+        private readonly IDependencyValidator<TicketUpdateDto> _finishToFinishValidtor;
 
         public CircularDependencyValidationTests()
         {
-            _startFinishResolvedTicket = new StartFinishResolvedTicket(_ticketsDependenciesRepositoryMock.Object);
-            _startFinishInProgressTicket = new StartFinishInProgressTicket(_ticketsDependenciesRepositoryMock.Object);
-            _ticketDependenciesFactoryMock.Setup(repo => repo.GetValidator<TicketUpdateDto>(It.IsAny<TicketDependenciesEnum>())).Returns(_startFinishResolvedTicket);
+            _startToStartValidtor = new StartToStartValidator(_ticketsDependenciesRepositoryMock.Object);
+            _startToFinishValidtor = new StartToFinishValidator(_ticketsDependenciesRepositoryMock.Object);
+            _finishToStartValidtor = new FinishToStartValidator(_ticketsDependenciesRepositoryMock.Object);
+            _finishToFinishValidtor = new FinishToFinishValidator(_ticketsDependenciesRepositoryMock.Object);
+
+            _ticketDependenciesFactoryMock.Setup(repo => repo.GetValidator<TicketUpdateDto>(It.IsAny<TicketDependenciesEnum>())).Returns(_startToFinishValidtor);
         }
 
         class MockDependencyOptions
@@ -56,17 +61,17 @@ namespace TicketingSystem.UnitTests
         static readonly Guid ticket3Id = new("02895efa-cb50-4834-88c8-813e1f2fa720");
         static readonly Guid ticket4Id = new("2e3e88f4-8620-490b-8bc5-bdd0e2326df9");
         static readonly Guid ticket5Id = new("8a2b7541-f094-48fb-93e9-ae7bbda2b1f9");
-        static readonly TicketDependenciesEntity baseTicketDependency = new() { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id };
+        static readonly TicketDependenciesEntity baseTicketDependency = new() { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id };
 
         [Fact]
         public async Task CheckValidation_For2Elements_ShouldThrowCircularDependenciesException()
         {
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket1Id), It.IsAny<Guid>()))
                 .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket1Id, TargetId = baseTicketId }
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket1Id, TargetId = baseTicketId }
                 ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startToFinishValidtor.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
@@ -74,15 +79,15 @@ namespace TicketingSystem.UnitTests
         {
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket1Id), It.IsAny<Guid>()))
                 .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket1Id, TargetId = ticket2Id }
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket1Id, TargetId = ticket2Id }
                 ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket2Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket2Id, TargetId = baseTicketId }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket2Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startToFinishValidtor.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
@@ -90,20 +95,20 @@ namespace TicketingSystem.UnitTests
         {
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket1Id), It.IsAny<Guid>()))
                 .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket1Id, TargetId = ticket2Id }
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket1Id, TargetId = ticket2Id }
                 ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket2Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket2Id, TargetId = ticket3Id }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket2Id, TargetId = ticket3Id }
                ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket2Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket3Id, TargetId = baseTicketId }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket3Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startToFinishValidtor.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
@@ -111,13 +116,13 @@ namespace TicketingSystem.UnitTests
         {
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket1Id), It.IsAny<Guid>()))
                 .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket1Id, TargetId = ticket2Id },
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket1Id, TargetId = ticket3Id }
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket1Id, TargetId = ticket2Id },
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket1Id, TargetId = ticket3Id }
                 ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket2Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket2Id, TargetId = ticket4Id }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket2Id, TargetId = ticket4Id }
                ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket4Id), It.IsAny<Guid>()))
@@ -125,15 +130,15 @@ namespace TicketingSystem.UnitTests
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket3Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket3Id, TargetId = ticket5Id }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket3Id, TargetId = ticket5Id }
                ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket5Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket5Id, TargetId = baseTicketId }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket5Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startToFinishValidtor.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
 
         [Fact]
@@ -141,15 +146,15 @@ namespace TicketingSystem.UnitTests
         {
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket1Id), It.IsAny<Guid>()))
                 .ReturnsAsync(GenerateMockedDependencies([
-                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_IN_PROGRESS, SourceId = ticket1Id, TargetId = ticket2Id },
+                    new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SS_DEPENDNECY, SourceId = ticket1Id, TargetId = ticket2Id },
                 ]));
 
             _ticketsDependenciesRepositoryMock.Setup(repo => repo.GetDependencies(It.Is<GetTicketDependencyDto>(dto => dto.SourceTicketId == ticket2Id), It.IsAny<Guid>()))
                .ReturnsAsync(GenerateMockedDependencies([
-                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceId = ticket2Id, TargetId = baseTicketId }
+                   new MockDependencyOptions { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceId = ticket2Id, TargetId = baseTicketId }
                ]));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startFinishResolvedTicket.CanCreateAsync(baseTicketId, baseTicketDependency));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _startToFinishValidtor.CanCreateAsync(baseTicketId, baseTicketDependency));
         }
     }
 }

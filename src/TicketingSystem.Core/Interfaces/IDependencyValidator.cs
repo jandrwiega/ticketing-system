@@ -11,6 +11,6 @@ namespace TicketingSystem.Core.Interfaces
 
     public interface IDependencyValidator<T> : IDependencyValidatorBase<T>
     {
-        void Validate(TicketEntity targetTicket);
+        void Validate(TicketEntity sourceTicket, TicketEntity targetTicket);
     }
 }

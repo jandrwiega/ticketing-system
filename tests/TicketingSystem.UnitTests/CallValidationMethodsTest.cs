@@ -43,7 +43,7 @@ namespace TicketingSystem.UnitTests
         [Fact]
         public async Task CheckValidation_ForElements_ShouldExecuteValidationAndCallUpdate()
         {
-            _startFinishResolvedTicketMock.Setup(repo => repo.Validate(It.IsAny<TicketEntity>()));
+            _startFinishResolvedTicketMock.Setup(repo => repo.Validate(It.IsAny<TicketEntity>(), It.IsAny<TicketEntity>()));
 
             TicketConfigurationMapEntity bugConfiguration = new() { Id = Guid.NewGuid(), TicketType = TicketTypeEnum.Bug, Tickets = [], Metadata = [] };
             TicketUpdateDto dto = new() { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.Resolved) };
@@ -54,7 +54,7 @@ namespace TicketingSystem.UnitTests
                 MetadataConfiguration = bugConfiguration,
                 Title = "Base Ticket",
                 Dependencies = [
-                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
+                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
                 ]
             };
             TicketEntity ticket1 = new()
@@ -72,7 +72,7 @@ namespace TicketingSystem.UnitTests
             await _ticketsService.UpdateTicket(ticket.Id, dto);
 
             _startFinishResolvedTicketMock.Verify(it => it.ShouldValidate(dto), Times.Once());
-            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>()), Times.Once());
+            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>(), It.IsAny<TicketEntity>()), Times.Once());
             _ticketsDbRepositoryMock.Verify(it => it.Update(ticket, It.IsAny<TicketUpdateSaveDto>()), Times.Once());
         }
 
@@ -90,7 +90,7 @@ namespace TicketingSystem.UnitTests
                 MetadataConfiguration = bugConfiguration,
                 Title = "Base Ticket",
                 Dependencies = [
-                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
+                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
                 ]
             };
             TicketEntity ticket1 = new()
@@ -107,14 +107,14 @@ namespace TicketingSystem.UnitTests
             await _ticketsService.UpdateTicket(ticket.Id, dto);
 
             _startFinishResolvedTicketMock.Verify(it => it.ShouldValidate(dto), Times.Once());
-            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>()), Times.Never());
+            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>(), It.IsAny<TicketEntity>()), Times.Never());
             _ticketsDbRepositoryMock.Verify(it => it.Update(ticket, It.IsAny<TicketUpdateSaveDto>()), Times.Once());
         }
 
         [Fact]
         public async Task CheckValidation_ForElements_ShouldExecuteValidationAndFail()
         {
-            _startFinishResolvedTicketMock.Setup(repo => repo.Validate(It.IsAny<TicketEntity>())).Throws(new InvalidOperationException("Some of dependencies conditions doesn't meet"));
+            _startFinishResolvedTicketMock.Setup(repo => repo.Validate(It.IsAny<TicketEntity>(), It.IsAny<TicketEntity>())).Throws(new InvalidOperationException("Some of dependencies conditions doesn't meet"));
 
             TicketConfigurationMapEntity bugConfiguration = new() { Id = Guid.NewGuid(), TicketType = TicketTypeEnum.Bug, Tickets = [], Metadata = [] };
             TicketUpdateDto dto = new() { Status = new Optional<TicketStatusEnum>(TicketStatusEnum.Resolved) };
@@ -125,7 +125,7 @@ namespace TicketingSystem.UnitTests
                 MetadataConfiguration = bugConfiguration,
                 Title = "Base Ticket",
                 Dependencies = [
-                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_RESOLVED, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
+                    new TicketDependenciesEntity { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, SourceTicketId = baseTicketId, TargetTicketId = ticket1Id }
                 ]
             };
             TicketEntity ticket1 = new()
@@ -140,7 +140,7 @@ namespace TicketingSystem.UnitTests
             _ticketsDbRepositoryMock.Setup(repo => repo.GetById(ticket1Id)).ReturnsAsync(ticket1);
 
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await _ticketsService.UpdateTicket(ticket.Id, dto));
-            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>()), Times.Once());
+            _startFinishResolvedTicketMock.Verify(it => it.Validate(It.IsAny<TicketEntity>(), It.IsAny<TicketEntity>()), Times.Once());
             _startFinishResolvedTicketMock.Verify(it => it.ShouldValidate(dto), Times.Once());
         }
     }

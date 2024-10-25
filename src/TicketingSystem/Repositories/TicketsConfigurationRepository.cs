@@ -103,9 +103,9 @@ namespace TicketingSystem.Repositories
 
         private static void UpdateIfModified<T>(Optional<T> item, Action<T?> action)
         {
-            if (item.isPresent)
+            if (item.IsPresent)
             {
-                action(item.value);
+                action(item.Value);
             }
         }
     }

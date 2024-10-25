@@ -325,7 +325,7 @@ namespace TicketingSystem.IntegrationTests
                 Type = TicketTypeEnum.Epic,
                 Dependencies = [new TicketDependencyDto()
                 {
-                    DependencyType = TicketDependenciesEnum.SF_RESOLVED,
+                    DependencyType = TicketDependenciesEnum.SF_DEPENDENCY,
                     TargetTicketId = Guid.NewGuid()
                 }]
             };
@@ -456,7 +456,7 @@ namespace TicketingSystem.IntegrationTests
 
             var putUrl = $"{baseUrl}/{ticket?.Id}";
             TicketEntity? randomItem = await GetFirstTicket();
-            TicketUpdateDto dto = new() { Dependencies = [new TicketDependencyDto { DependencyType = TicketDependenciesEnum.SF_RESOLVED, TargetTicketId = randomItem?.Id ?? Guid.NewGuid() }] };
+            TicketUpdateDto dto = new() { Dependencies = [new TicketDependencyDto { DependencyType = TicketDependenciesEnum.SF_DEPENDENCY, TargetTicketId = randomItem?.Id ?? Guid.NewGuid() }] };
 
             HttpResponseMessage response = await _client.PutAsJsonAsync(putUrl, dto);
             response.StatusCode.Should().Be(HttpStatusCode.OK);

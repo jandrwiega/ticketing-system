@@ -15,8 +15,10 @@ namespace TicketingSystem.Core.Validators
         {
             return dependencyType switch
             {
-                TicketDependenciesEnum.SF_IN_PROGRESS => (IDependencyValidator<T>)new StartFinishInProgressTicket(_ticketsDependenciesRepository),
-                TicketDependenciesEnum.SF_RESOLVED => (IDependencyValidator<T>)new StartFinishResolvedTicket(_ticketsDependenciesRepository),
+                TicketDependenciesEnum.SS_DEPENDNECY => (IDependencyValidator<T>)new StartToStartValidator(_ticketsDependenciesRepository),
+                TicketDependenciesEnum.SF_DEPENDENCY => (IDependencyValidator<T>)new StartToFinishValidator(_ticketsDependenciesRepository),
+                TicketDependenciesEnum.FS_DEPENDENCY => (IDependencyValidator<T>)new FinishToStartValidator(_ticketsDependenciesRepository),
+                TicketDependenciesEnum.FF_DEPENDENCY => (IDependencyValidator<T>)new FinishToFinishValidator(_ticketsDependenciesRepository),
                 _ => throw new Exception("Validator not implemented yet"),
             };
         }

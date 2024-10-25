@@ -91,7 +91,7 @@ namespace TicketingSystem.Services
 
                 if (validator.ShouldValidate(body))
                 {
-                    validator.Validate(targetEntity);
+                    validator.Validate(entity, targetEntity);
                 }
             }
 
